@@ -1,4 +1,4 @@
-USE USE [GD2C2022]
+USE [GD2C2022]
 GO
 
 drop table [gd_esquema].[Material]
