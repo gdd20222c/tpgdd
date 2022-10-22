@@ -73,6 +73,55 @@ CREATE TABLE [gd_esquema].[Compra_Producto] (
 )
 GO
 
+CREATE TABLE [gd_esquema].[Tipo_Descuento] (
+    tipo_descuento_id int NOT NULL IDENTITY(1,1) PRIMARY KEY,
+	tipo_descuento_descripcion nvarchar(255) NOT NULL,
+	tipo_descuento_concepto nvarchar(255) NOT NULL,
+	venta_descuento_importe decimal(18,2) NOT NULL,
+)
+GO
+
+CREATE TABLE [gd_esquema].[Venta_Descuento] (
+    venta_descuento_id int NOT NULL IDENTITY(1,1) PRIMARY KEY,
+	venta_id int NOT NULL FOREIGN KEY REFERENCES [gd_esquema].[Venta](venta_id),
+	tipo_descuento_id int NOT NULL FOREIGN KEY REFERENCES [gd_esquema].[Tipo_Descuento](tipo_descuento_id),
+	venta_descuento_importe decimal(18,2) NOT NULL,
+)
+GO
+
+CREATE TABLE [gd_esquema].[Venta](
+	venta_id int NOT NULL IDENTITY(1,1) PRIMARY KEY,
+	cliente_id int NOT NULL FOREIGN KEY REFERENCES [gd_esquema].[Cliente](cliente_id),
+	venta_codigo decimal(19,0) NOT NULL,
+	venta_fecha date NOT NULL,
+	venta_total decimal(18,2) NOT NULL,
+	venta_canal_id int NOT NULL FOREIGN KEY REFERENCES [gd_esquema].[Venta_canal](venta_canal_id),
+	venta_canal_costo decimal(18,2) NOT NULL,
+	venta_medio_envio_id int NOT NULL FOREIGN KEY REFERENCES [gd_esquema].[Venta_medio_envio](venta_medio_envio_id),
+	venta_envio_precio decimal(18,2) NOT NULL,
+	venta_medio_pago_id int NOT NULL FOREIGN KEY REFERENCES [gd_esquema].[Venta_medio_pago](venta_medio_pago_id),
+	venta_medio_pago_costo decimal(18,2) NOT NULL,
+)
+GO
+
+CREATE TABLE [gd_esquema].[Venta_Cupon] (
+	venta_id int NOT NULL FOREIGN KEY REFERENCES [gd_esquema].[Venta](venta_id),
+    cupon_id int NOT NULL FOREIGN KEY REFERENCES [gd_esquema].[Cupon](cupon_id),
+	venta_cupon_importe decimal(18,2) NOT NULL,
+)
+GO
+
+CREATE TABLE [gd_esquema].[Cupon] (
+    cupon_id int NOT NULL IDENTITY(1,1) PRIMARY KEY,
+	cupon_codigo nvarchar(255) NOT NULL,
+    cupon_fecha_desde date NOT NULL,
+    cupon_fecha_hasta date NOT NULL,
+    cupon_importe decimal(18,2) NOT NULL,
+    cupon_valor decimal(18,2) NOT NULL,
+    cupon_tipo nvarchar(50) NOT NULL,
+)
+GO
+
 -- Index creation
 -- TODO: Por ahora no hay indices extra a los pk
 
@@ -91,10 +140,6 @@ GO
 --     insert into [gd_esquema].[Material]
 -- END
 -- GO
-
-
-
-
 
 -- Inserts
 

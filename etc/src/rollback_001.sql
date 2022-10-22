@@ -27,3 +27,18 @@ GO
 
 drop table [gd_esquema].[Compra_Producto]
 GO
+
+drop table [gd_esquema].[Tipo_Descuento]
+GO
+
+drop table [gd_esquema].[Venta_Descuento]
+GO
+
+drop table [gd_esquema].[Venta]
+GO
+
+drop table [gd_esquema].[Venta_Cupon]
+GO
+
+drop table [gd_esquema].[Cupon]
+GO
