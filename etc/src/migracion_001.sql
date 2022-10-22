@@ -141,7 +141,37 @@ GO
 =================================================
 */
 
+CREATE PROCEDURE NN.Insert_Categoria(
+  @categoria_descripcion nvarchar(255)
+) AS BEGIN
+	INSERT INTO [NN].[Categoria] (categoria_descripcion)
+	VALUES (@categoria_descripcion)
+END
+GO
 
+CREATE PROCEDURE NN.Insert_Marca(
+  @marca_descripcion nvarchar(255)
+) AS BEGIN
+	INSERT INTO [NN].[Marca] (marca_descripcion)
+	VALUES (@marca_descripcion)
+END
+GO
+
+CREATE PROCEDURE NN.Insert_Material(
+  @material_descripcion nvarchar(255)
+) AS BEGIN
+	INSERT INTO [NN].[Material] (material_descripcion)
+	VALUES (@material_descripcion)
+END
+GO
+
+CREATE PROCEDURE NN.Insert_Tipo_variante(
+  @tipo_variante_descripcion nvarchar(255)
+) AS BEGIN
+	INSERT INTO [NN].[Tipo_Variante] (tipo_variante_descripcion)
+	VALUES (@tipo_variante_descripcion)
+END
+GO
 
 /*
 =================================================
@@ -149,39 +179,79 @@ GO
 =================================================
 */
 
+/********************CATEGORIA**********************/
+	DECLARE @categoria_descripcion varchar(255)
+
+	DECLARE categoriaMigration CURSOR FOR
+        SELECT DISTINCT m.[PRODUCTO_CATEGORIA]
+        FROM [gd_esquema].[Maestra] m
+        WHERE m.[PRODUCTO_CATEGORIA] IS NOT NULL
+        ORDER BY m.[PRODUCTO_CATEGORIA] ASC
+
+	OPEN categoriaMigration
+	FETCH NEXT FROM categoriaMigration INTO @categoria_descripcion
+	WHILE @@FETCH_STATUS = 0 BEGIN
+	    EXEC NN.Insert_Categoria @categoria_descripcion
+	    FETCH NEXT FROM cuponesMigracion INTO @categoria_descripcion
+	END
+GO
+
+/**********************MARCA**********************/
+	DECLARE @marca_descripcion varchar(255)
+
+	DECLARE marcaMigration CURSOR FOR
+        SELECT DISTINCT m.[PRODUCTO_MARCA]
+        FROM [gd_esquema].[Maestra] m
+        WHERE m.[PRODUCTO_MARCA] IS NOT NULL
+        ORDER BY m.[PRODUCTO_MARCA] ASC
+
+	OPEN marcaMigration
+	FETCH NEXT FROM marcaMigration INTO @marca_descripcion
+	WHILE @@FETCH_STATUS = 0 BEGIN
+	    EXEC NN.Insert_Marca @marca_descripcion
+	    FETCH NEXT FROM marcaMigration INTO @marca_descripcion
+	END
+GO
+
+/*********************MATERIAL********************/
+	DECLARE @material_descripcion varchar(255)
+
+	DECLARE materialMigration CURSOR FOR
+        SELECT DISTINCT m.[PRODUCTO_MATERIAL]
+        FROM [gd_esquema].[Maestra] m
+        WHERE m.[PRODUCTO_MATERIAL] IS NOT NULL
+        ORDER BY m.[PRODUCTO_MATERIAL] ASC
+
+	OPEN materialMigration
+	FETCH NEXT FROM materialMigration INTO @material_descripcion
+	WHILE @@FETCH_STATUS = 0 BEGIN
+	    EXEC NN.Insert_Material @material_descripcion
+	    FETCH NEXT FROM materialMigration INTO @material_descripcion
+	END
+GO
+
+/******************TIPO VARIANTE******************/
+    DECLARE @tipo_variante_descripcion varchar(255)
+
+	DECLARE tipoVarianteMigration CURSOR FOR
+        SELECT DISTINCT m.[PRODUCTO_TIPO_VARIANTE]
+        FROM [gd_esquema].[Maestra] m
+        WHERE m.[PRODUCTO_TIPO_VARIANTE] IS NOT NULL
+        ORDER BY m.[PRODUCTO_TIPO_VARIANTE] asc
+    
+    OPEN tipoVarianteMigration
+	FETCH NEXT FROM tipoVarianteMigration INTO @tipo_variante_descripcion
+	WHILE @@FETCH_STATUS = 0 BEGIN
+	    EXEC NN.Insert_Tipo_variante @tipo_variante_descripcion
+	    FETCH NEXT FROM tipoVarianteMigration INTO @tipo_variante_descripcion
+	END
+GO
+
 /*
 
 First insertion approach
 
 */
-
-INSERT INTO [NN].[Categoria] (categoria_descripcion)
-SELECT DISTINCT [gd_esquema].[Maestra].[PRODUCTO_CATEGORIA] as categoria_descripcion
-FROM [gd_esquema].[Maestra]
-WHERE [gd_esquema].[Maestra].[PRODUCTO_CATEGORIA] is not null
-ORDER BY categoria_descripcion asc
-GO
-
-INSERT INTO [NN].[Marca] (marca_descripcion)
-SELECT DISTINCT [gd_esquema].[Maestra].[PRODUCTO_MARCA] as marca_descripcion
-FROM [gd_esquema].[Maestra]
-WHERE [gd_esquema].[Maestra].[PRODUCTO_MARCA] is not null
-ORDER BY marca_descripcion asc
-GO
-
-INSERT INTO [NN].[Material] (material_descripcion)
-SELECT DISTINCT [gd_esquema].[Maestra].[PRODUCTO_MATERIAL] as material_descripcion
-FROM [gd_esquema].[Maestra]
-WHERE [gd_esquema].[Maestra].[PRODUCTO_MATERIAL] is not null
-ORDER BY material_descripcion asc
-GO
-
-INSERT INTO [NN].[Tipo_Variante] (tipo_variante_descripcion)
-SELECT DISTINCT [gd_esquema].[Maestra].[PRODUCTO_TIPO_VARIANTE] as tipo_variante_descripcion
-FROM [gd_esquema].[Maestra]
-WHERE [gd_esquema].[Maestra].[PRODUCTO_TIPO_VARIANTE] IS NOT NULL
-ORDER BY tipo_variante_descripcion asc
-GO
 
 INSERT INTO [NN].[Variante] (tipo_variante_id, variante_descripcion)
 SELECT tp.tipo_variante_id,
@@ -264,8 +334,8 @@ CREATE PROCEDURE NN.InsertCupon (
   @cupon_valor decimal(18,2),
   @cupon_tipo nvarchar(50)
 ) AS BEGIN
-INSERT INTO [NN].[Cupon] (cupon_codigo, cupon_fecha_desde, cupon_fecha_hasta, cupon_importe, cupon_valor, cupon_tipo)
-VALUES (@cupon_codigo, @cupon_fecha_desde, @cupon_fecha_hasta, @cupon_importe, @cupon_valor, @cupon_tipo)
+	INSERT INTO [NN].[Cupon] (cupon_codigo, cupon_fecha_desde, cupon_fecha_hasta, cupon_importe, cupon_valor, cupon_tipo)
+	VALUES (@cupon_codigo, @cupon_fecha_desde, @cupon_fecha_hasta, @cupon_importe, @cupon_valor, @cupon_tipo)
 END
 
 DECLARE @cupon_codigo nvarchar(255),
