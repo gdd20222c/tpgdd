@@ -73,7 +73,7 @@ CREATE TABLE [NN].[Venta_Medio_Envio](
 GO
 
 CREATE TABLE [NN].[Material] (
-    material_id int NOT NULL IDENTITY(1,1) PRIMAeRY KEY,
+    material_id int NOT NULL IDENTITY(1,1) PRIMARY KEY,
     material_descripcion nvarchar(50) NOT NULL
 )
 GO
@@ -925,16 +925,33 @@ GO
 GO
 
 /*********************PRODUCTO_VARIANTE*********************/
-/*
+
     DECLARE @producto_id int
     DECLARE @variante_id int
     DECLARE @producto_variante_codigo nvarchar(50)
     DECLARE @producto_variante_precio decimal(18,2)
     DECLARE @producto_variante_cantidad decimal(18,0)
 
-	DECLARE productoVarianteMigration 
-	CURSOR FOR @producto_id, @variante_id, @producto_variante_codigo, @producto_variante_precio, @producto_variante_cantidad
-	-- .SELECT
+	DECLARE productoVarianteMigration CURSOR FOR
+-- 	    REVISAR
+        SELECT DISTINCT p.producto_id,
+                        v.variante_id,
+                        m.PRODUCTO_VARIANTE_CODIGO,
+                        AVG(m.COMPRA_PRODUCTO_PRECIO) as precio,
+                        (SELECT SUM(COMPRA_PRODUCTO_CANTIDAD) as CANTIDAD
+                             FROM gd_esquema.Maestra AS m1
+        WHERE COMPRA_PRODUCTO_CANTIDAD IS NOT NULL
+          AND m1.PRODUCTO_VARIANTE_CODIGO = m.PRODUCTO_VARIANTE_CODIGO
+        group by PRODUCTO_VARIANTE_CODIGO
+        ) as producto_variante_cantidad
+            from gd_esquema.Maestra as m
+            inner join NN.Producto as p
+                on m.PRODUCTO_CODIGO = p.producto_codigo
+            inner join NN.Variante as v
+                on m.PRODUCTO_VARIANTE = v.variante_descripcion
+        WHERE COMPRA_PRODUCTO_PRECIO IS NOT NULL
+        GROUP BY PRODUCTO_VARIANTE_CODIGO, p.producto_id, v.variante_id
+        ORDER BY 3
 	OPEN productoVarianteMigration
 	FETCH NEXT FROM productoVarianteMigration INTO @producto_id, @variante_id, @producto_variante_codigo, @producto_variante_precio, @producto_variante_cantidad
 	WHILE @@FETCH_STATUS = 0 BEGIN
@@ -945,7 +962,7 @@ GO
 	CLOSE productoVarianteMigration
 	DEALLOCATE productoVarianteMigration
 GO	
-*/
+
 /*********************VENTA_PRODUCTO*********************/
 /*
     DECLARE @venta_id int
