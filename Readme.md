@@ -6,9 +6,10 @@
 - [Grupo de Google](http://groups.google.com/group/gestiondedatos) con preguntas que hacen otros grupos
 
 ### Entregas
-[x] Entrega del DER | 24/09/2022 hasta las 12:00hs
-[ ] Entrega de Modelo de Datos y Migración | 02/11/2022 hasta las 12:00hs
-[ ] Entrega de BI | 30/11/2022 hasta las 12:00hs
+
+- [x] Entrega del DER | 24/09/2022 hasta las 12:00hs
+- [ ] Entrega de Modelo de Datos y Migración | 02/11/2022 hasta las 12:00hs
+- [ ] Entrega de BI | 30/11/2022 hasta las 12:00hs
 
 
 ### Detalle Entregas
