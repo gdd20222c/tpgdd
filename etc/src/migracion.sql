@@ -124,6 +124,40 @@ CREATE TABLE [NN].[Producto_variante] (
 )
 GO
 
+CREATE TABLE NN.Proveedor_direccion(
+	proveedor_direccion_id int NOT NULL IDENTITY(1,1) PRIMARY KEY,
+	proveedor_direccion_domicilio NVARCHAR(50)	NOT NULL,
+	localidad_id int NOT NULL FOREIGN KEY REFERENCES [NN].Localidad(localidad_id),
+	codigo_postal_id int NOT NULL FOREIGN KEY REFERENCES [NN].Codigo_Postal(cod_postal_id),
+)
+GO
+
+CREATE TABLE NN.Proveedor(
+	proveedor_id int NOT NULL IDENTITY(1,1) PRIMARY KEY,
+	proveedor_cuit NVARCHAR(50)	NOT NULL,
+	proveedor_razon_social NVARCHAR(50)	NOT NULL,
+	proveedor_mail NVARCHAR(50)	NOT NULL,
+	proveedor_direccion_id  int NOT NULL FOREIGN KEY REFERENCES [NN].Proveedor(proveedor_id),
+)
+GO
+
+CREATE TABLE NN.Compra(
+	compra_id int NOT NULL IDENTITY(1,1) PRIMARY KEY,
+	proveedor_id int NOT NULL FOREIGN KEY REFERENCES [NN].Proveedor(proveedor_id),
+	compra_numero DECIMAL(19,0) NOT NULL,
+	compra_fecha DATE NOT NULL,
+	compra_medio_pago NVARCHAR(255) NOT NULL,
+	compra_total DECIMAL(18,2) NOT NULL
+)
+GO
+
+CREATE TABLE NN.Compra_descuento(
+	compra_descuento_id int NOT NULL IDENTITY(1,1) PRIMARY KEY,
+	compra_id int NOT NULL FOREIGN KEY REFERENCES [NN].Proveedor(proveedor_id),
+	compra_descuento_valor DECIMAL(18,2) NOT NULL
+)
+GO
+
 CREATE TABLE [NN].[Compra_Producto] (
     compra_id int NOT NULL FOREIGN KEY REFERENCES [NN].[Compra](compra_id),
     producto_variante_id int NOT NULL FOREIGN KEY REFERENCES [NN].[Producto_Variante](producto_variante_id),
@@ -419,8 +453,50 @@ CREATE PROCEDURE NN.Insert_Compra_Producto(
 	VALUES (@compra_id, @producto_variante_id, @compra_producto_precio, @compra_producto_cantidad)
 END
 GO
-	
- 
+
+
+CREATE PROCEDURE NN.Insert_Proveedor_direccion(
+	@proveedor_direccion_domicilio NVARCHAR(50),
+	@localidad_id INT,
+	@codigo_postal_id INT 
+) AS BEGIN
+	INSERT INTO Proveedor_direccion (proveedor_direccion_domicilio, localidad_id, codigo_postal_id)
+	VALUES (@proveedor_direccion_domicilio, @localidad_id, @codigo_postal_id)
+END
+GO
+
+CREATE PROCEDURE NN.Insert_Proveedor(
+	@proveedor_cuit NVARCHAR(50),
+	@proveedor_razon_social NVARCHAR(50),
+	@proveedor_mail NVARCHAR(50),
+	@proveedor_direccion_id  INT 
+) AS BEGIN
+	INSERT INTO Proveedor(proveedor_cuit, proveedor_razon_social, proveedor_mail, proveedor_direccion_id)
+	VALUES (@proveedor_cuit, @proveedor_razon_social, @proveedor_mail, @proveedor_direccion_id)
+END
+GO
+
+CREATE PROCEDURE NN.Insert_Compra(
+	@proveedor_id INT,
+	@compra_numero DECIMAL(19,0),
+	@compra_fecha DATE,
+	@compra_medio_pago NVARCHAR(255),
+	@compra_total DECIMAL(18,2) 
+) AS BEGIN
+	INSERT INTO Compra(proveedor_id, compra_numero, compra_fecha, compra_medio_pago, compra_total)
+	VALUES (@proveedor_id, @compra_numero, @compra_fecha, @compra_medio_pago, @compra_total)
+
+END
+GO
+
+CREATE PROCEDURE NN.Insert_Compra_descuento(
+	@compra_id INT,
+	@compra_descuento_valor DECIMAL(18,2) 
+) AS BEGIN
+	INSERT INTO Compra_descuento(compra_id ,compra_descuento_valor)
+	VALUES(@compra_id, @compra_descuento_valor)
+END
+GO
 
 /*
 =================================================
@@ -667,7 +743,6 @@ GO
 GO
 
 /****************** VENTA MEDIO ENVIO ******************/
-/** arreglar**/
 	DECLARE @venta_medio_envio_descripcion nvarchar(255), 
 			@venta_medio_envio_precio decimal(18,2), 
 			@localidad_id int, 
@@ -722,7 +797,7 @@ GO
 	FETCH NEXT FROM categoriaMigration INTO @categoria_descripcion
 	WHILE @@FETCH_STATUS = 0 BEGIN
 	    EXEC NN.Insert_Categoria @categoria_descripcion
-	    FETCH NEXT FROM cuponesMigracion INTO @categoria_descripcion
+	    FETCH NEXT FROM categoriaMigration INTO @categoria_descripcion
 	END
 
 	CLOSE categoriaMigration
@@ -839,7 +914,7 @@ GO
 			on categoria.categoria_descripcion = m.PRODUCTO_CATEGORIA
 		order by 4	
     OPEN productoMigration 
-	FETCH NEXT FROM productoMigration INTO @material_id, @marca_id, @categoria_id, @producto_nombre, @producto_descripcion
+	FETCH NEXT FROM productoMigration INTO @material_id, @marca_id, @categoria_id, @producto_codigo, @producto_nombre, @producto_descripcion
 	WHILE @@FETCH_STATUS = 0 BEGIN
 	    EXEC NN.Insert_Producto @material_id, @marca_id, @categoria_id, @producto_codigo, @producto_nombre, @producto_descripcion 
 	    FETCH NEXT FROM productoMigration INTO @material_id, @marca_id, @categoria_id, @producto_codigo, @producto_nombre, @producto_descripcion
