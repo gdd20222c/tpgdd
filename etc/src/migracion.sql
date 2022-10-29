@@ -420,6 +420,52 @@ CREATE PROCEDURE NN.Insert_Producto(
 END
 GO
 
+
+
+CREATE PROCEDURE NN.Insert_Proveedor_direccion(
+	@proveedor_direccion_domicilio NVARCHAR(50),
+	@localidad_id INT,
+	@codigo_postal_id INT 
+) AS BEGIN
+	INSERT INTO Proveedor_direccion (proveedor_direccion_domicilio, localidad_id, codigo_postal_id)
+	VALUES (@proveedor_direccion_domicilio, @localidad_id, @codigo_postal_id)
+END
+GO
+
+CREATE PROCEDURE NN.Insert_Proveedor(
+	@proveedor_cuit NVARCHAR(50),
+	@proveedor_razon_social NVARCHAR(50),
+	@proveedor_mail NVARCHAR(50),
+	@proveedor_direccion_id  INT 
+) AS BEGIN
+	INSERT INTO Proveedor(proveedor_cuit, proveedor_razon_social, proveedor_mail, proveedor_direccion_id)
+	VALUES (@proveedor_cuit, @proveedor_razon_social, @proveedor_mail, @proveedor_direccion_id)
+END
+GO
+
+CREATE PROCEDURE NN.Insert_Compra(
+	@proveedor_id INT,
+	@compra_numero DECIMAL(19,0),
+	@compra_fecha DATE,
+	@compra_medio_pago NVARCHAR(255),
+	@compra_total DECIMAL(18,2) 
+) AS BEGIN
+	INSERT INTO Compra(proveedor_id, compra_numero, compra_fecha, compra_medio_pago, compra_total)
+	VALUES (@proveedor_id, @compra_numero, @compra_fecha, @compra_medio_pago, @compra_total)
+
+END
+GO
+
+CREATE PROCEDURE NN.Insert_Compra_descuento(
+	@compra_id INT,
+	@compra_descuento_valor DECIMAL(18,2) 
+) AS BEGIN
+	INSERT INTO Compra_descuento(compra_id ,compra_descuento_valor)
+	VALUES(@compra_id, @compra_descuento_valor)
+END
+GO
+
+
 /*
 =================================================
 ================INSERTION LOGIC==================
