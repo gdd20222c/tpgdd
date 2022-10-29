@@ -438,7 +438,7 @@ CREATE PROCEDURE NN.Insert_Venta_Producto(
     @venta_producto_precio decimal(18,2),
     @venta_producto_cantidad decimal(18,0)
 ) AS BEGIN
-	INSERT INTO [NN].[Producto_Variante] (venta_id, producto_variante_id, venta_producto_precio, venta_producto_cantidad)
+	INSERT INTO [NN].[Venta_Producto] (venta_id, producto_variante_id, venta_producto_precio, venta_producto_cantidad)
 	VALUES (@venta_id, @producto_variante_id, @venta_producto_precio, @venta_producto_cantidad)
 END
 GO
@@ -449,7 +449,7 @@ CREATE PROCEDURE NN.Insert_Compra_Producto(
     @compra_producto_precio decimal(18,2),
     @compra_producto_cantidad decimal(18,0)
 ) AS BEGIN
-	INSERT INTO [NN].[Producto_Variante] (compra_id, producto_variante_id, compra_producto_precio, compra_producto_cantidad)
+	INSERT INTO [NN].[Compra_Producto] (compra_id, producto_variante_id, compra_producto_precio, compra_producto_cantidad)
 	VALUES (@compra_id, @producto_variante_id, @compra_producto_precio, @compra_producto_cantidad)
 END
 GO
