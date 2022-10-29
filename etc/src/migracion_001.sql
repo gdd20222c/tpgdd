@@ -173,6 +173,15 @@ CREATE PROCEDURE NN.Insert_Tipo_variante(
 END
 GO
 
+CREATE PROCEDURE NN.Insert_Variante(
+  @tipo_variante_id int,
+  @variante_descripcion varchar(50)
+) AS BEGIN
+	INSERT INTO [NN].[Variante] (tipo_variante_id, variante_descripcion)
+	VALUES (@tipo_variante_id, @variante_descripcion)
+END
+GO
+
 /*
 =================================================
 ================INSERTION LOGIC==================
@@ -244,6 +253,29 @@ GO
 	WHILE @@FETCH_STATUS = 0 BEGIN
 	    EXEC NN.Insert_Tipo_variante @tipo_variante_descripcion
 	    FETCH NEXT FROM tipoVarianteMigration INTO @tipo_variante_descripcion
+	END
+GO
+
+/*********************VARIANTE*********************/
+    DECLARE @variante_descripcion varchar(50)
+	DECLARE @tipo_variante_id int
+
+	DECLARE varianteMigration CURSOR FOR
+        SELECT tp.tipo_variante_id,
+			   m.[PRODUCTO_VARIANTE] as variante_descripcion
+		FROM [gd_esquema].[Maestra] as m
+		INNER JOIN [NN].[Tipo_Variante] AS tp
+			ON m.[PRODUCTO_TIPO_VARIANTE] = tp.[tipo_variante_descripcion]
+		WHERE m.[PRODUCTO_TIPO_VARIANTE] IS NOT NULL
+		GROUP BY m.[PRODUCTO_VARIANTE],
+			   tp.tipo_variante_id
+		ORDER BY tp.tipo_variante_id, m.[PRODUCTO_VARIANTE]
+    
+    OPEN varianteMigration 
+	FETCH NEXT FROM varianteMigration INTO @tipo_variante_id, @variante_descripcion
+	WHILE @@FETCH_STATUS = 0 BEGIN
+	    EXEC NN.Insert_Variante @tipo_variante_id, @variante_descripcion 
+	    FETCH NEXT FROM varianteMigration INTO @tipo_variante_id, @variante_descripcion
 	END
 GO
 
