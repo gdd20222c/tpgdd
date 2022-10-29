@@ -124,6 +124,40 @@ CREATE TABLE [NN].[Producto_variante] (
 )
 GO
 
+CREATE TABLE NN.Proveedor_direccion(
+	proveedor_direccion_id int NOT NULL IDENTITY(1,1) PRIMARY KEY,
+	proveedor_direccion_domicilio NVARCHAR(50)	NOT NULL,
+	localidad_id int NOT NULL FOREIGN KEY REFERENCES [NN].Localidad(localidad_id),
+	codigo_postal_id int NOT NULL FOREIGN KEY REFERENCES [NN].Codigo_Postal(cod_postal_id),
+)
+GO
+
+CREATE TABLE NN.Proveedor(
+	proveedor_id int NOT NULL IDENTITY(1,1) PRIMARY KEY,
+	proveedor_cuit NVARCHAR(50)	NOT NULL,
+	proveedor_razon_social NVARCHAR(50)	NOT NULL,
+	proveedor_mail NVARCHAR(50)	NOT NULL,
+	proveedor_direccion_id  int NOT NULL FOREIGN KEY REFERENCES [NN].Proveedor(proveedor_id),
+)
+GO
+
+CREATE TABLE NN.Compra(
+	compra_id int NOT NULL IDENTITY(1,1) PRIMARY KEY,
+	proveedor_id int NOT NULL FOREIGN KEY REFERENCES [NN].Proveedor(proveedor_id),
+	compra_numero DECIMAL(19,0) NOT NULL,
+	compra_fecha DATE NOT NULL,
+	compra_medio_pago NVARCHAR(255) NOT NULL,
+	compra_total DECIMAL(18,2) NOT NULL
+)
+GO
+
+CREATE TABLE NN.Compra_descuento(
+	compra_descuento_id int NOT NULL IDENTITY(1,1) PRIMARY KEY,
+	compra_id int NOT NULL FOREIGN KEY REFERENCES [NN].Proveedor(proveedor_id),
+	compra_descuento_valor DECIMAL(18,2) NOT NULL
+)
+GO
+
 CREATE TABLE [NN].[Compra_Producto] (
     compra_id int NOT NULL FOREIGN KEY REFERENCES [NN].[Compra](compra_id),
     producto_variante_id int NOT NULL FOREIGN KEY REFERENCES [NN].[Producto_Variante](producto_variante_id),
