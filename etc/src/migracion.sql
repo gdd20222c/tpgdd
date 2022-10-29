@@ -631,7 +631,6 @@ GO
 GO
 
 /****************** VENTA MEDIO ENVIO ******************/
-/** arreglar**/
 	DECLARE @venta_medio_envio_descripcion nvarchar(255), 
 			@venta_medio_envio_precio decimal(18,2), 
 			@localidad_id int, 
@@ -686,7 +685,7 @@ GO
 	FETCH NEXT FROM categoriaMigration INTO @categoria_descripcion
 	WHILE @@FETCH_STATUS = 0 BEGIN
 	    EXEC NN.Insert_Categoria @categoria_descripcion
-	    FETCH NEXT FROM cuponesMigracion INTO @categoria_descripcion
+	    FETCH NEXT FROM categoriaMigration INTO @categoria_descripcion
 	END
 
 	CLOSE categoriaMigration
