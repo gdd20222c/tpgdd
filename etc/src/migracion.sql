@@ -73,7 +73,7 @@ CREATE TABLE [NN].[Venta_Medio_Envio](
 GO
 
 CREATE TABLE [NN].[Material] (
-    material_id int NOT NULL IDENTITY(1,1) PRIMARY KEY,
+    material_id int NOT NULL IDENTITY(1,1) PRIMAeRY KEY,
     material_descripcion nvarchar(50) NOT NULL
 )
 GO
@@ -417,6 +417,84 @@ CREATE PROCEDURE NN.Insert_Producto(
 ) AS BEGIN
 	INSERT INTO [NN].[Producto] (material_id, marca_id, categoria_id, producto_codigo, producto_nombre, producto_descripcion)
 	VALUES (@material_id, @marca_id, @categoria_id, @producto_codigo, @producto_nombre, @producto_descripcion)
+END
+GO
+
+CREATE PROCEDURE NN.Insert_Producto_Variante(
+  	@producto_id int,
+    @variante_id int,
+    @producto_variante_codigo nvarchar(50),
+    @producto_variante_precio decimal(18,2),
+    @producto_variante_cantidad decimal(18,0)
+) AS BEGIN
+	INSERT INTO [NN].[Producto_Variante] (producto_id, variante_id, producto_variante_codigo, producto_variante_precio, producto_variante_cantidad)
+	VALUES (@producto_id, @variante_id, @producto_variante_codigo, @producto_variante_precio, @producto_variante_cantidad)
+END
+GO
+
+CREATE PROCEDURE NN.Insert_Venta_Producto(
+  	@venta_id int,
+    @producto_variante_id int,
+    @venta_producto_precio decimal(18,2),
+    @venta_producto_cantidad decimal(18,0)
+) AS BEGIN
+	INSERT INTO [NN].[Producto_Variante] (venta_id, producto_variante_id, venta_producto_precio, venta_producto_cantidad)
+	VALUES (@venta_id, @producto_variante_id, @venta_producto_precio, @venta_producto_cantidad)
+END
+GO
+
+CREATE PROCEDURE NN.Insert_Compra_Producto(
+  	@compra_id int,
+    @producto_variante_id int,
+    @compra_producto_precio decimal(18,2),
+    @compra_producto_cantidad decimal(18,0)
+) AS BEGIN
+	INSERT INTO [NN].[Producto_Variante] (compra_id, producto_variante_id, compra_producto_precio, compra_producto_cantidad)
+	VALUES (@compra_id, @producto_variante_id, @compra_producto_precio, @compra_producto_cantidad)
+END
+GO
+
+
+CREATE PROCEDURE NN.Insert_Proveedor_direccion(
+	@proveedor_direccion_domicilio NVARCHAR(50),
+	@localidad_id INT,
+	@codigo_postal_id INT 
+) AS BEGIN
+	INSERT INTO Proveedor_direccion (proveedor_direccion_domicilio, localidad_id, codigo_postal_id)
+	VALUES (@proveedor_direccion_domicilio, @localidad_id, @codigo_postal_id)
+END
+GO
+
+CREATE PROCEDURE NN.Insert_Proveedor(
+	@proveedor_cuit NVARCHAR(50),
+	@proveedor_razon_social NVARCHAR(50),
+	@proveedor_mail NVARCHAR(50),
+	@proveedor_direccion_id  INT 
+) AS BEGIN
+	INSERT INTO Proveedor(proveedor_cuit, proveedor_razon_social, proveedor_mail, proveedor_direccion_id)
+	VALUES (@proveedor_cuit, @proveedor_razon_social, @proveedor_mail, @proveedor_direccion_id)
+END
+GO
+
+CREATE PROCEDURE NN.Insert_Compra(
+	@proveedor_id INT,
+	@compra_numero DECIMAL(19,0),
+	@compra_fecha DATE,
+	@compra_medio_pago NVARCHAR(255),
+	@compra_total DECIMAL(18,2) 
+) AS BEGIN
+	INSERT INTO Compra(proveedor_id, compra_numero, compra_fecha, compra_medio_pago, compra_total)
+	VALUES (@proveedor_id, @compra_numero, @compra_fecha, @compra_medio_pago, @compra_total)
+
+END
+GO
+
+CREATE PROCEDURE NN.Insert_Compra_descuento(
+	@compra_id INT,
+	@compra_descuento_valor DECIMAL(18,2) 
+) AS BEGIN
+	INSERT INTO Compra_descuento(compra_id ,compra_descuento_valor)
+	VALUES(@compra_id, @compra_descuento_valor)
 END
 GO
 
@@ -824,7 +902,7 @@ GO
 	DECLARE @producto_descripcion nvarchar(50)
 
 	DECLARE productoMigration CURSOR FOR
-        SELECT 	material.material_id,
+        SELECT DISTINCT	material.material_id,
 				marca.marca_id,
 				categoria.categoria_id,
 				m.PRODUCTO_CODIGO as producto_codigo,
@@ -837,6 +915,7 @@ GO
 			on marca.marca_descripcion = m.PRODUCTO_MARCA
 		inner join [NN].[Categoria] as categoria
 			on categoria.categoria_descripcion = m.PRODUCTO_CATEGORIA
+		order by 4	
     OPEN productoMigration 
 	FETCH NEXT FROM productoMigration INTO @material_id, @marca_id, @categoria_id, @producto_codigo, @producto_nombre, @producto_descripcion
 	WHILE @@FETCH_STATUS = 0 BEGIN
@@ -848,15 +927,75 @@ GO
 	DEALLOCATE productoMigration
 GO
 
+/*********************PRODUCTO_VARIANTE*********************/
+/*
+    DECLARE @producto_id int
+    DECLARE @variante_id int
+    DECLARE @producto_variante_codigo nvarchar(50)
+    DECLARE @producto_variante_precio decimal(18,2)
+    DECLARE @producto_variante_cantidad decimal(18,0)
+
+	DECLARE productoVarianteMigration 
+	CURSOR FOR @producto_id, @variante_id, @producto_variante_codigo, @producto_variante_precio, @producto_variante_cantidad
+	-- .SELECT
+	OPEN productoVarianteMigration
+	FETCH NEXT FROM productoVarianteMigration INTO @producto_id, @variante_id, @producto_variante_codigo, @producto_variante_precio, @producto_variante_cantidad
+	WHILE @@FETCH_STATUS = 0 BEGIN
+	    EXEC NN.Insert_Producto_Variante @producto_id, @variante_id, @producto_variante_codigo, @producto_variante_precio, @producto_variante_cantidad
+	    FETCH NEXT FROM productoVarianteMigration INTO @producto_id, @variante_id, @producto_variante_codigo, @producto_variante_precio, @producto_variante_cantidad
+	END
+
+	CLOSE productoVarianteMigration
+	DEALLOCATE productoVarianteMigration
+GO	
+*/
+/*********************VENTA_PRODUCTO*********************/
+/*
+    DECLARE @venta_id int
+    DECLARE @producto_variante_id int
+    DECLARE @venta_producto_precio decimal(18,2)
+    DECLARE @venta_producto_cantidad decimal(18,0)
+
+	DECLARE ventaProductoMigration 
+	CURSOR FOR @venta_id, @producto_variante_id, @venta_producto_precio, @venta_producto_cantidad
+	-- .SELECT
+	OPEN ventaProductoMigration
+	FETCH NEXT FROM ventaProductoMigration INTO @venta_id, @producto_variante_id, @venta_producto_precio, @venta_producto_cantidad
+	WHILE @@FETCH_STATUS = 0 BEGIN
+	    EXEC NN.Insert_Venta_Producto @venta_id, @producto_variante_id, @venta_producto_precio, @venta_producto_cantidad
+	    FETCH NEXT FROM ventaProductoMigration INTO @venta_id, @producto_variante_id, @venta_producto_precio, @venta_producto_cantidad
+	END
+
+	CLOSE ventaProductoMigration
+	DEALLOCATE ventaProductoMigration
+GO	
+*/
+/*********************COMPRA_PRODUCTO*********************/
+/*
+    DECLARE @compra_id int
+    DECLARE @producto_variante_id int
+    DECLARE @compra_producto_precio decimal(18,2)
+    DECLARE @compra_producto_cantidad decimal(18,0)
+
+	DECLARE compraProductoMigration 
+	CURSOR FOR @compra_id, @producto_variante_id, @compra_producto_precio, @compra_producto_cantidad
+	-- .SELECT
+	OPEN compraProductoMigration
+	FETCH NEXT FROM compraProductoMigration INTO @compra_id, @producto_variante_id, @compra_producto_precio, @compra_producto_cantidad
+	WHILE @@FETCH_STATUS = 0 BEGIN
+	    EXEC NN.Insert_Compra_Producto @compra_id, @producto_variante_id, @compra_producto_precio, @compra_producto_cantidad
+	    FETCH NEXT FROM compraProductoMigration INTO @compra_id, @producto_variante_id, @compra_producto_precio, @compra_producto_cantidad
+	END
+
+	CLOSE compraProductoMigration
+	DEALLOCATE compraProductoMigration
+GO	
+*/
 /*
 
 First insertion approach
 
 */
-
-INSERT INTO [NN].[Producto_variante] (producto_id, variante_id, producto_variante_codigo, producto_variante_precio, producto_variante_cantidad)
-select 1
-GO
 
 INSERT INTO [NN].[Tipo_Descuento] (tipo_descuento_concepto, venta_descuento_importe)
 SELECT DISTINCT VENTA_DESCUENTO_CONCEPTO, 0
