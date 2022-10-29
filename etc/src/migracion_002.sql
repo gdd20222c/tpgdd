@@ -27,6 +27,14 @@ CREATE TABLE [NN].[Localidad] (
 )
 GO
 
+CREATE TABLE [NN].[Cliente_Direccion] (
+	cliente_direccion_id int NOT NULL IDENTITY(1,1) PRIMARY KEY,
+	cliente_direccion nvarchar(255) NOT NULL,
+	localidad_id int NOT NULL FOREIGN KEY REFERENCES [NN].[Localidad](localidad_id),
+	cod_postal_id int NOT NULL FOREIGN KEY REFERENCES [NN].[Codigo_Postal](cod_postal_id)
+)
+GO
+
 CREATE TABLE [NN].[Cliente] (
     cliente_id int NOT NULL IDENTITY(1,1) PRIMARY KEY,
     cliente_nombre nvarchar(255) NOT NULL,
@@ -35,15 +43,7 @@ CREATE TABLE [NN].[Cliente] (
 	cliente_dni decimal(18,0) NOT NULL,
 	cliente_mail nvarchar(255) NOT NULL,
 	cliente_fecha_nac date NOT NULL,
-)
-GO
-
-CREATE TABLE [NN].[Cliente_Direccion] (
-	cliente_direccion_id int NOT NULL IDENTITY(1,1) PRIMARY KEY,
-	cliente_direccion nvarchar(255) NOT NULL,
-	cliente_id int NOT NULL FOREIGN KEY REFERENCES [NN].[Cliente](cliente_id),
-	localidad_id int NOT NULL FOREIGN KEY REFERENCES [NN].[Localidad](localidad_id),
-	cod_postal_id int NOT NULL FOREIGN KEY REFERENCES [NN].[Codigo_Postal](cod_postal_id)
+	cliente_direccion_id int NOT NULL FOREIGN KEY REFERENCES [NN].[Cliente_Direccion](cliente_direccion_id)
 )
 GO
 
@@ -65,7 +65,7 @@ CREATE TABLE [NN].[Venta_Medio_Envio](
 	venta_medio_envio_id int NOT NULL IDENTITY(1,1) PRIMARY KEY,
 	venta_medio_envio_descripcion nvarchar(255) NOT NULL,
 	venta_medio_envio_precio decimal(18,2) NOT NULL,
-	provincia_id int NOT NULL FOREIGN KEY REFERENCES [NN].[Provincia](provincia_id),
+	localidad_id int NOT NULL FOREIGN KEY REFERENCES [NN].[Localidad](localidad_id),
 	cod_postal_id int NOT NULL FOREIGN KEY REFERENCES [NN].[Codigo_Postal](cod_postal_id)
 )
 GO
@@ -106,13 +106,34 @@ BEGIN
 END
 GO
 
+CREATE PROCEDURE [NN].[Insert_Cliente_Direccion] (
+		@cliente_direccion nvarchar(255), 
+		@localidad_id int,
+		@cod_postal_id int
+	)
+AS 
+BEGIN
+	INSERT INTO [NN].[Cliente_Direccion] (
+		cliente_direccion, 
+		localidad_id,
+		cod_postal_id
+	)
+	VALUES (
+		@cliente_direccion, 
+		@localidad_id,
+		@cod_postal_id
+	)
+END
+GO
+
 CREATE PROCEDURE [NN].[Insert_Cliente] (
 		@cliente_nombre nvarchar(255), 
 		@cliente_apellido nvarchar(255), 
 		@cliente_telefono decimal(18,0), 
 		@cliente_dni decimal(18,0), 
 		@cliente_mail nvarchar(255), 
-		@cliente_fecha_nac date
+		@cliente_fecha_nac date,
+		@cliente_direccion_id int
 	)
 AS 
 BEGIN
@@ -122,37 +143,16 @@ BEGIN
 		cliente_telefono,
 		cliente_dni,
 		cliente_mail,
-		cliente_fecha_nac)
+		cliente_fecha_nac,
+		cliente_direccion_id)
 	VALUES (
 		@cliente_nombre,
 		@cliente_apellido,
 		@cliente_telefono,
 		@cliente_dni,
 		@cliente_mail,
-		@cliente_fecha_nac
-	)
-END
-GO
-
-CREATE PROCEDURE [NN].[Insert_Cliente_Direccion] (
-		@cliente_direccion nvarchar(255), 
-		@cliente_id int, 
-		@localidad_id int,
-		@cod_postal_id int
-	)
-AS 
-BEGIN
-	INSERT INTO [NN].[Cliente_Direccion] (
-		cliente_direccion, 
-		cliente_id, 
-		localidad_id,
-		cod_postal_id
-	)
-	VALUES (
-		@cliente_direccion, 
-		@cliente_id, 
-		@localidad_id,
-		@cod_postal_id
+		@cliente_fecha_nac,
+		@cliente_direccion_id
 	)
 END
 GO
@@ -182,7 +182,7 @@ GO
 CREATE PROCEDURE [NN].[Insert_Venta_Medio_Envio] (
 		@venta_medio_envio_descripcion nvarchar(255), 
 		@venta_medio_envio_precio decimal(18,2), 
-		@provincia_id int, 
+		@localidad_id int, 
 		@cod_postal_id int
 	)
 AS 
@@ -190,13 +190,13 @@ BEGIN
 	INSERT INTO [NN].[Venta_Medio_Envio] (
 		venta_medio_envio_descripcion, 
 		venta_medio_envio_precio, 
-		provincia_id, 
+		localidad_id, 
 		cod_postal_id
 	)
 	VALUES (
 		@venta_medio_envio_descripcion, 
 		@venta_medio_envio_precio, 
-		@provincia_id, 
+		@localidad_id, 
 		@cod_postal_id
 	)
 END
@@ -288,6 +288,44 @@ GO
 	DEALLOCATE localidad_migracion
 GO
 
+/****************** CLIENTE DIRECCION ******************/
+	DECLARE 
+		@cliente_direccion nvarchar(255), 
+		@localidad_id int, 
+		@cod_postal_id int
+
+	DECLARE cliente_direccion_migracion CURSOR FOR
+		SELECT DISTINCT
+			m.CLIENTE_DIRECCION,
+			l.localidad_id,
+			cp.cod_postal_id
+		FROM [gd_esquema].[Maestra] m
+		JOIN [NN].[Localidad] l ON l.localidad_nombre = m.CLIENTE_LOCALIDAD
+		JOIN [NN].[Provincia] p ON p.provincia_nombre = m.CLIENTE_PROVINCIA
+		JOIN [NN].[Codigo_Postal] cp ON cp.cod_postal_codigo = m.CLIENTE_CODIGO_POSTAL
+		WHERE m.CLIENTE_DIRECCION IS NOT NULL
+
+	OPEN cliente_direccion_migracion
+	FETCH NEXT FROM cliente_direccion_migracion INTO 
+			@cliente_direccion, 
+			@localidad_id, 
+			@cod_postal_id
+	WHILE @@FETCH_STATUS = 0 
+	BEGIN
+		EXEC [NN].[Insert_Cliente_Direccion]			
+			@cliente_direccion, 
+			@localidad_id, 
+			@cod_postal_id
+		FETCH NEXT FROM cliente_direccion_migracion INTO
+			@cliente_direccion, 
+			@localidad_id, 
+			@cod_postal_id
+	END
+
+	CLOSE cliente_direccion_migracion
+	DEALLOCATE cliente_direccion_migracion
+GO
+
 /****************** CLIENTE ******************/
 
 	DECLARE @cliente_nombre nvarchar(255), 
@@ -295,7 +333,8 @@ GO
 			@cliente_telefono decimal(18,0), 
 			@cliente_dni decimal(18,0), 
 			@cliente_mail nvarchar(255), 
-			@cliente_fecha_nac date
+			@cliente_fecha_nac date,
+			@cliente_direccion_id int
 
 	DECLARE cliente_migracion CURSOR FOR
 		SELECT DISTINCT
@@ -304,8 +343,13 @@ GO
 			m1.CLIENTE_TELEFONO, 
 			m1.CLIENTE_DNI, 
 			m1.CLIENTE_MAIL, 
-			m1.CLIENTE_FECHA_NAC
+			m1.CLIENTE_FECHA_NAC,
+			cd.cliente_direccion_id
 		FROM [gd_esquema].[Maestra] m1
+		JOIN [NN].[Cliente_Direccion] cd
+		ON m1.CLIENTE_DIRECCION = cd.cliente_direccion 
+		JOIN [NN].[Localidad] l
+		ON m1.CLIENTE_LOCALIDAD = l.localidad_nombre
 		WHERE
 			m1.CLIENTE_NOMBRE IS NOT NULL AND
 			m1.CLIENTE_APELLIDO IS NOT NULL AND
@@ -314,6 +358,7 @@ GO
 			m1.CLIENTE_MAIL IS NOT NULL AND
 			m1.CLIENTE_FECHA_NAC IS NOT NULL 
 
+
 	OPEN cliente_migracion
 	FETCH NEXT FROM cliente_migracion INTO 
 			@cliente_nombre, 
@@ -321,7 +366,8 @@ GO
 			@cliente_telefono, 
 			@cliente_dni, 
 			@cliente_mail, 
-			@cliente_fecha_nac
+			@cliente_fecha_nac,
+			@cliente_direccion_id
 	WHILE @@FETCH_STATUS = 0 
 	BEGIN
 		EXEC [NN].[Insert_Cliente]			
@@ -330,62 +376,20 @@ GO
 			@cliente_telefono, 
 			@cliente_dni, 
 			@cliente_mail, 
-			@cliente_fecha_nac
+			@cliente_fecha_nac,
+			@cliente_direccion_id
 		FETCH NEXT FROM cliente_migracion INTO
 			@cliente_nombre, 
 			@cliente_apellido, 
 			@cliente_telefono, 
 			@cliente_dni, 
 			@cliente_mail, 
-			@cliente_fecha_nac
+			@cliente_fecha_nac,
+			@cliente_direccion_id
 	END
 
 	CLOSE cliente_migracion
 	DEALLOCATE cliente_migracion
-GO
-
-/****************** CLIENTE DIRECCION ******************/
-/** arreglar**/
-	DECLARE 
-		@cliente_direccion nvarchar(255), 
-		@cliente_id int, 
-		@localidad_id int, 
-		@cod_postal_id int
-
-	DECLARE cliente_direccion_migracion CURSOR FOR
-		SELECT DISTINCT
-			m.CLIENTE_DIRECCION,
-			c.cliente_id,
-			l.localidad_id,
-			cp.cod_postal_id
-		FROM [gd_esquema].[Maestra] m
-		JOIN [NN].[Cliente] c ON c.cliente_dni = m.CLIENTE_DNI and c.cliente_apellido != m.CLIENTE_APELLIDO
-		JOIN [NN].[Localidad] l ON l.localidad_nombre = m.CLIENTE_LOCALIDAD
-		JOIN [NN].[Codigo_Postal] cp ON cp.cod_postal_codigo = m.CLIENTE_CODIGO_POSTAL
-		WHERE m.CLIENTE_DIRECCION IS NOT NULL
-
-	OPEN cliente_direccion_migracion
-	FETCH NEXT FROM cliente_direccion_migracion INTO 
-			@cliente_direccion, 
-			@cliente_id, 
-			@localidad_id, 
-			@cod_postal_id
-	WHILE @@FETCH_STATUS = 0 
-	BEGIN
-		EXEC [NN].[Insert_Cliente_Direccion]			
-			@cliente_direccion, 
-			@cliente_id, 
-			@localidad_id, 
-			@cod_postal_id
-		FETCH NEXT FROM cliente_direccion_migracion INTO
-			@cliente_direccion, 
-			@cliente_id, 
-			@localidad_id, 
-			@cod_postal_id
-	END
-
-	CLOSE cliente_direccion_migracion
-	DEALLOCATE cliente_direccion_migracion
 GO
 
 /****************** VENTA CANAL ******************/
@@ -440,17 +444,17 @@ GO
 /** arreglar**/
 	DECLARE @venta_medio_envio_descripcion nvarchar(255), 
 			@venta_medio_envio_precio decimal(18,2), 
-			@provincia_id int, 
+			@localidad_id int, 
 			@cod_postal_id int
 
 	DECLARE venta_medio_envio_migracion CURSOR FOR
-		SELECT
+		SELECT DISTINCT
 			m1.VENTA_MEDIO_ENVIO, 
 			m1.VENTA_ENVIO_PRECIO,
-			p.provincia_id,
+			l.localidad_id,
 			cp.cod_postal_id 
 		FROM [gd_esquema].[Maestra] m1
-		JOIN [NN].[Provincia] p ON m1.CLIENTE_PROVINCIA = p.provincia_nombre 
+		JOIN [NN].[Localidad] l ON m1.CLIENTE_LOCALIDAD = l.localidad_nombre
 		JOIN [NN].[Codigo_Postal] cp ON m1.CLIENTE_CODIGO_POSTAL = cp.cod_postal_codigo 
 		WHERE m1.VENTA_MEDIO_ENVIO IS NOT NULL
 			
@@ -459,19 +463,19 @@ GO
 	FETCH NEXT FROM venta_medio_envio_migracion INTO
 			@venta_medio_envio_descripcion, 
 			@venta_medio_envio_precio, 
-			@provincia_id, 
+			@localidad_id, 
 			@cod_postal_id
 	WHILE @@FETCH_STATUS = 0 
 	BEGIN
 		EXEC [NN].[Insert_Venta_Medio_Envio] 
 			@venta_medio_envio_descripcion, 
 			@venta_medio_envio_precio, 
-			@provincia_id, 
+			@localidad_id, 
 			@cod_postal_id
 		FETCH NEXT FROM venta_medio_envio_migracion INTO 
 			@venta_medio_envio_descripcion, 
 			@venta_medio_envio_precio, 
-			@provincia_id, 
+			@localidad_id, 
 			@cod_postal_id
 	END
 
