@@ -284,19 +284,6 @@ GO
 First insertion approach
 
 */
-
-INSERT INTO [NN].[Variante] (tipo_variante_id, variante_descripcion)
-SELECT tp.tipo_variante_id,
-       m.[PRODUCTO_VARIANTE] as variante_descripcion
-FROM [gd_esquema].[Maestra] as m
-INNER JOIN [NN].[Tipo_Variante] AS tp
-    ON m.[PRODUCTO_TIPO_VARIANTE] = tp.[tipo_variante_descripcion]
-WHERE m.[PRODUCTO_TIPO_VARIANTE] IS NOT NULL
-group by m.[PRODUCTO_VARIANTE],
-       tp.tipo_variante_id
-order by tp.tipo_variante_id, m.[PRODUCTO_VARIANTE]
-GO
-
 INSERT INTO [NN].[Producto] (material_id, marca_id, categoria_id, producto_codigo, producto_nombre, producto_descripcion)
 SELECT material.material_id,
        marca.marca_id,
