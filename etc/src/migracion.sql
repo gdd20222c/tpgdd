@@ -817,21 +817,6 @@ GO
 First insertion approach
 
 */
-INSERT INTO [NN].[Producto] (material_id, marca_id, categoria_id, producto_codigo, producto_nombre, producto_descripcion)
-SELECT material.material_id,
-       marca.marca_id,
-       categoria.categoria_id,
-       m.PRODUCTO_CODIGO as producto_codigo,
-       m.PRODUCTO_NOMBRE as producto_nombre,
-       m.PRODUCTO_DESCRIPCION as producto_descripcion
-FROM [gd_esquema].[Maestra] as m
-inner join [NN].[Material] as material
-    on material.material_descripcion = m.PRODUCTO_MATERIAL
-inner join [NN].[Marca] as marca
-    on marca.marca_descripcion = m.PRODUCTO_MARCA
-inner join [NN].[Categoria] as categoria
-    on categoria.categoria_descripcion = m.PRODUCTO_CATEGORIA
-GO
 
 INSERT INTO [NN].[Producto_variante] (producto_id, variante_id, producto_variante_codigo, producto_variante_precio, producto_variante_cantidad)
 select 1
