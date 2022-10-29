@@ -675,6 +675,9 @@ GO
 	    EXEC NN.Insert_Categoria @categoria_descripcion
 	    FETCH NEXT FROM cuponesMigracion INTO @categoria_descripcion
 	END
+
+	CLOSE categoriaMigration
+	DEALLOCATE categoriaMigration
 GO
 
 /**********************MARCA**********************/
@@ -692,6 +695,9 @@ GO
 	    EXEC NN.Insert_Marca @marca_descripcion
 	    FETCH NEXT FROM marcaMigration INTO @marca_descripcion
 	END
+
+	CLOSE marcaMigration
+	DEALLOCATE marcaMigration
 GO
 
 /*********************MATERIAL********************/
@@ -709,6 +715,9 @@ GO
 	    EXEC NN.Insert_Material @material_descripcion
 	    FETCH NEXT FROM materialMigration INTO @material_descripcion
 	END
+
+	CLOSE materialMigration
+	DEALLOCATE materialMigration
 GO
 
 /******************TIPO VARIANTE******************/
@@ -726,6 +735,9 @@ GO
 	    EXEC NN.Insert_Tipo_variante @tipo_variante_descripcion
 	    FETCH NEXT FROM tipoVarianteMigration INTO @tipo_variante_descripcion
 	END
+
+	CLOSE tipoVarianteMigration
+	DEALLOCATE tipoVarianteMigration
 GO
 
 /*********************VARIANTE*********************/
@@ -749,6 +761,9 @@ GO
 	    EXEC NN.Insert_Variante @tipo_variante_id, @variante_descripcion 
 	    FETCH NEXT FROM varianteMigration INTO @tipo_variante_id, @variante_descripcion
 	END
+
+	CLOSE varianteMigration
+	DEALLOCATE varianteMigration
 GO
 
 /*
