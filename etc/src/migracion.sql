@@ -373,6 +373,19 @@ CREATE PROCEDURE NN.Insert_Variante(
 END
 GO
 
+CREATE PROCEDURE NN.Insert_Producto(
+  @material_id int,
+  @marca_id int, 
+  @categoria_id int,
+  @producto_codigo nvarchar(50),
+  @producto_nombre nvarchar(50),
+  @producto_descripcion nvarchar(50)
+) AS BEGIN
+	INSERT INTO [NN].[Producto] (material_id, marca_id, categoria_id, producto_codigo, producto_nombre, producto_descripcion)
+	VALUES (@material_id, @marca_id, @categoria_id, @producto_codigo, @producto_nombre, @producto_descripcion)
+END
+GO
+
 /*
 =================================================
 ================INSERTION LOGIC==================
@@ -764,6 +777,39 @@ GO
 
 	CLOSE varianteMigration
 	DEALLOCATE varianteMigration
+GO
+
+/*********************PRODUCTO*********************/
+	DECLARE @material_id int
+	DECLARE @marca_id int 
+	DECLARE @categoria_id int
+	DECLARE @producto_codigo nvarchar(50)
+	DECLARE @producto_nombre nvarchar(50)
+	DECLARE @producto_descripcion nvarchar(50)
+
+	DECLARE productoMigration CURSOR FOR
+        SELECT 	material.material_id,
+				marca.marca_id,
+				categoria.categoria_id,
+				m.PRODUCTO_CODIGO as producto_codigo,
+				m.PRODUCTO_NOMBRE as producto_nombre,
+				m.PRODUCTO_DESCRIPCION as producto_descripcion
+		FROM [gd_esquema].[Maestra] as m
+		inner join [NN].[Material] as material
+			on material.material_descripcion = m.PRODUCTO_MATERIAL
+		inner join [NN].[Marca] as marca
+			on marca.marca_descripcion = m.PRODUCTO_MARCA
+		inner join [NN].[Categoria] as categoria
+			on categoria.categoria_descripcion = m.PRODUCTO_CATEGORIA
+    OPEN productoMigration 
+	FETCH NEXT FROM productoMigration INTO @material_id, @marca_id, @categoria_id, @producto_nombre, @producto_descripcion
+	WHILE @@FETCH_STATUS = 0 BEGIN
+	    EXEC NN.Insert_Producto @material_id, @marca_id, @categoria_id, @producto_nombre, @producto_descripcion 
+	    FETCH NEXT FROM productoMigration INTO @material_id, @marca_id, @categoria_id, @producto_nombre, @producto_descripcion
+	END
+
+	CLOSE productoMigration
+	DEALLOCATE productoMigration
 GO
 
 /*
