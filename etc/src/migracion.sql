@@ -801,10 +801,10 @@ GO
 		inner join [NN].[Categoria] as categoria
 			on categoria.categoria_descripcion = m.PRODUCTO_CATEGORIA
     OPEN productoMigration 
-	FETCH NEXT FROM productoMigration INTO @material_id, @marca_id, @categoria_id, @producto_nombre, @producto_descripcion
+	FETCH NEXT FROM productoMigration INTO @material_id, @marca_id, @categoria_id, @producto_codigo, @producto_nombre, @producto_descripcion
 	WHILE @@FETCH_STATUS = 0 BEGIN
-	    EXEC NN.Insert_Producto @material_id, @marca_id, @categoria_id, @producto_nombre, @producto_descripcion 
-	    FETCH NEXT FROM productoMigration INTO @material_id, @marca_id, @categoria_id, @producto_nombre, @producto_descripcion
+	    EXEC NN.Insert_Producto @material_id, @marca_id, @categoria_id, @producto_codigo, @producto_nombre, @producto_descripcion 
+	    FETCH NEXT FROM productoMigration INTO @material_id, @marca_id, @categoria_id, @producto_codigo, @producto_nombre, @producto_descripcion
 	END
 
 	CLOSE productoMigration
