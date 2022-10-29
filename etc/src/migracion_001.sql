@@ -124,41 +124,6 @@ CREATE TABLE [NN].[Producto_variante] (
 )
 GO
 
-CREATE TABLE NN.Proveedor_direccion(
-	proveedor_direccion_id int NOT NULL IDENTITY(1,1) PRIMARY KEY,
-	proveedor_direccion_domicilio NVARCHAR(50)	NOT NULL,
-	localidad_id int NOT NULL FOREIGN KEY REFERENCES [NN].Localidad(localidad_id),
-	codigo_postal_id int NOT NULL FOREIGN KEY REFERENCES [NN].Codigo_Postal(cod_postal_id),
-)
-GO
-
-CREATE TABLE NN.Proveedor(
-	proveedor_id int NOT NULL IDENTITY(1,1) PRIMARY KEY,
-	proveedor_cuit NVARCHAR(50)	NOT NULL,
-	proveedor_razon_social NVARCHAR(50)	NOT NULL,
-	proveedor_mail NVARCHAR(50)	NOT NULL,
-	proveedor_direccion_id  int NOT NULL FOREIGN KEY REFERENCES [NN].Proveedor(proveedor_id),
-)
-GO
-
-CREATE TABLE NN.Compra(
-	compra_id int NOT NULL IDENTITY(1,1) PRIMARY KEY,
-	proveedor_id int NOT NULL FOREIGN KEY REFERENCES [NN].Proveedor(proveedor_id),
-	compra_numero DECIMAL(19,0) NOT NULL,
-	compra_fecha DATE NOT NULL,
-	compra_medio_pago NVARCHAR(255) NOT NULL,
-	compra_total DECIMAL(18,2) NOT NULL
-)
-GO
-
-CREATE TABLE NN.Compra_descuento(
-	compra_descuento_id int NOT NULL IDENTITY(1,1) PRIMARY KEY,
-	compra_id int NOT NULL FOREIGN KEY REFERENCES [NN].Proveedor(proveedor_id),
-	compra_descuento_valor DECIMAL(18,2) NOT NULL,
-	compra_descuento_codigo DECIMAL (19,0) NOT NULL
-)
-GO
-
 CREATE TABLE [NN].[Compra_Producto] (
     compra_id int NOT NULL FOREIGN KEY REFERENCES [NN].[Compra](compra_id),
     producto_variante_id int NOT NULL FOREIGN KEY REFERENCES [NN].[Producto_Variante](producto_variante_id),
@@ -172,6 +137,7 @@ CREATE TABLE [NN].[Tipo_Descuento] (
 	tipo_descuento_concepto nvarchar(255) NOT NULL,
 	venta_descuento_importe decimal(18,2) NOT NULL,
 )
+GO
 GO
 
 CREATE TABLE [NN].[Cupon] (
@@ -407,99 +373,6 @@ CREATE PROCEDURE NN.Insert_Variante(
 END
 GO
 
-CREATE PROCEDURE NN.Insert_Producto(
-  @material_id int,
-  @marca_id int, 
-  @categoria_id int,
-  @producto_codigo nvarchar(50),
-  @producto_nombre nvarchar(50),
-  @producto_descripcion nvarchar(50)
-) AS BEGIN
-	INSERT INTO [NN].[Producto] (material_id, marca_id, categoria_id, producto_codigo, producto_nombre, producto_descripcion)
-	VALUES (@material_id, @marca_id, @categoria_id, @producto_codigo, @producto_nombre, @producto_descripcion)
-END
-GO
-
-CREATE PROCEDURE NN.Insert_Producto_Variante(
-  	@producto_id int,
-    @variante_id int,
-    @producto_variante_codigo nvarchar(50),
-    @producto_variante_precio decimal(18,2),
-    @producto_variante_cantidad decimal(18,0)
-) AS BEGIN
-	INSERT INTO [NN].[Producto_Variante] (producto_id, variante_id, producto_variante_codigo, producto_variante_precio, producto_variante_cantidad)
-	VALUES (@producto_id, @variante_id, @producto_variante_codigo, @producto_variante_precio, @producto_variante_cantidad)
-END
-GO
-
-CREATE PROCEDURE NN.Insert_Venta_Producto(
-  	@venta_id int,
-    @producto_variante_id int,
-    @venta_producto_precio decimal(18,2),
-    @venta_producto_cantidad decimal(18,0)
-) AS BEGIN
-	INSERT INTO [NN].[Venta_Producto] (venta_id, producto_variante_id, venta_producto_precio, venta_producto_cantidad)
-	VALUES (@venta_id, @producto_variante_id, @venta_producto_precio, @venta_producto_cantidad)
-END
-GO
-
-CREATE PROCEDURE NN.Insert_Compra_Producto(
-  	@compra_id int,
-    @producto_variante_id int,
-    @compra_producto_precio decimal(18,2),
-    @compra_producto_cantidad decimal(18,0)
-) AS BEGIN
-	INSERT INTO [NN].[Compra_Producto] (compra_id, producto_variante_id, compra_producto_precio, compra_producto_cantidad)
-	VALUES (@compra_id, @producto_variante_id, @compra_producto_precio, @compra_producto_cantidad)
-END
-GO
-
-
-CREATE PROCEDURE NN.Insert_Proveedor_direccion(
-	@proveedor_direccion_domicilio NVARCHAR(50),
-	@localidad_id INT,
-	@codigo_postal_id INT 
-) AS BEGIN
-	INSERT INTO Proveedor_direccion (proveedor_direccion_domicilio, localidad_id, codigo_postal_id)
-	VALUES (@proveedor_direccion_domicilio, @localidad_id, @codigo_postal_id)
-	RETURN @@IDENTITY
-END
-GO
-
-CREATE PROCEDURE NN.Insert_Proveedor(
-	@proveedor_cuit NVARCHAR(50),
-	@proveedor_razon_social NVARCHAR(50),
-	@proveedor_mail NVARCHAR(50),
-	@proveedor_direccion_id  INT 
-) AS BEGIN
-	INSERT INTO Proveedor(proveedor_cuit, proveedor_razon_social, proveedor_mail, proveedor_direccion_id)
-	VALUES (@proveedor_cuit, @proveedor_razon_social, @proveedor_mail, @proveedor_direccion_id)
-END
-GO
-
-CREATE PROCEDURE NN.Insert_Compra(
-	@proveedor_id INT,
-	@compra_numero DECIMAL(19,0),
-	@compra_fecha DATE,
-	@compra_medio_pago NVARCHAR(255),
-	@compra_total DECIMAL(18,2) 
-) AS BEGIN
-	INSERT INTO Compra(proveedor_id, compra_numero, compra_fecha, compra_medio_pago, compra_total)
-	VALUES (@proveedor_id, @compra_numero, @compra_fecha, @compra_medio_pago, @compra_total)
-	RETURN @@IDENTITY
-END
-GO
-
-CREATE PROCEDURE NN.Insert_Compra_descuento(
-	@compra_id INT,
-	@compra_descuento_valor DECIMAL(18,2),
-	@compra_descuento_codigo DECIMAL (19,0)
-) AS BEGIN
-	INSERT INTO Compra_descuento(compra_id, compra_descuento_valor, compra_descuento_codigo)
-	VALUES(@compra_id, @compra_descuento_valor, @compra_descuento_codigo)
-END
-GO
-
 /*
 =================================================
 ================INSERTION LOGIC==================
@@ -602,15 +475,14 @@ GO
 		SELECT DISTINCT
 			m.CLIENTE_DIRECCION,
 			l.localidad_id,
-			cp.cod_postal_id
+			l.localidad_nombre,
+			cp.cod_postal_id,
+			cp.cod_postal_codigo
 		FROM [gd_esquema].[Maestra] m
 		JOIN [NN].[Localidad] l ON l.localidad_nombre = m.CLIENTE_LOCALIDAD
 		JOIN [NN].[Provincia] p ON p.provincia_nombre = m.CLIENTE_PROVINCIA
 		JOIN [NN].[Codigo_Postal] cp ON cp.cod_postal_codigo = m.CLIENTE_CODIGO_POSTAL
 		WHERE m.CLIENTE_DIRECCION IS NOT NULL
-
-
-
 
 	OPEN cliente_direccion_migracion
 	FETCH NEXT FROM cliente_direccion_migracion INTO 
@@ -802,11 +674,8 @@ GO
 	FETCH NEXT FROM categoriaMigration INTO @categoria_descripcion
 	WHILE @@FETCH_STATUS = 0 BEGIN
 	    EXEC NN.Insert_Categoria @categoria_descripcion
-	    FETCH NEXT FROM categoriaMigration INTO @categoria_descripcion
+	    FETCH NEXT FROM cuponesMigracion INTO @categoria_descripcion
 	END
-
-	CLOSE categoriaMigration
-	DEALLOCATE categoriaMigration
 GO
 
 /**********************MARCA**********************/
@@ -824,9 +693,6 @@ GO
 	    EXEC NN.Insert_Marca @marca_descripcion
 	    FETCH NEXT FROM marcaMigration INTO @marca_descripcion
 	END
-
-	CLOSE marcaMigration
-	DEALLOCATE marcaMigration
 GO
 
 /*********************MATERIAL********************/
@@ -844,9 +710,6 @@ GO
 	    EXEC NN.Insert_Material @material_descripcion
 	    FETCH NEXT FROM materialMigration INTO @material_descripcion
 	END
-
-	CLOSE materialMigration
-	DEALLOCATE materialMigration
 GO
 
 /******************TIPO VARIANTE******************/
@@ -864,9 +727,6 @@ GO
 	    EXEC NN.Insert_Tipo_variante @tipo_variante_descripcion
 	    FETCH NEXT FROM tipoVarianteMigration INTO @tipo_variante_descripcion
 	END
-
-	CLOSE tipoVarianteMigration
-	DEALLOCATE tipoVarianteMigration
 GO
 
 /*********************VARIANTE*********************/
@@ -890,196 +750,33 @@ GO
 	    EXEC NN.Insert_Variante @tipo_variante_id, @variante_descripcion 
 	    FETCH NEXT FROM varianteMigration INTO @tipo_variante_id, @variante_descripcion
 	END
-
-	CLOSE varianteMigration
-	DEALLOCATE varianteMigration
 GO
 
-/*********************PRODUCTO*********************/
-	DECLARE @material_id int
-	DECLARE @marca_id int 
-	DECLARE @categoria_id int
-	DECLARE @producto_codigo nvarchar(50)
-	DECLARE @producto_nombre nvarchar(50)
-	DECLARE @producto_descripcion nvarchar(50)
-
-	DECLARE productoMigration CURSOR FOR
-        SELECT DISTINCT	material.material_id,
-				marca.marca_id,
-				categoria.categoria_id,
-				m.PRODUCTO_CODIGO as producto_codigo,
-				m.PRODUCTO_NOMBRE as producto_nombre,
-				m.PRODUCTO_DESCRIPCION as producto_descripcion
-		FROM [gd_esquema].[Maestra] as m
-		inner join [NN].[Material] as material
-			on material.material_descripcion = m.PRODUCTO_MATERIAL
-		inner join [NN].[Marca] as marca
-			on marca.marca_descripcion = m.PRODUCTO_MARCA
-		inner join [NN].[Categoria] as categoria
-			on categoria.categoria_descripcion = m.PRODUCTO_CATEGORIA
-		order by 4	
-    OPEN productoMigration 
-	FETCH NEXT FROM productoMigration INTO @material_id, @marca_id, @categoria_id, @producto_codigo, @producto_nombre, @producto_descripcion
-	WHILE @@FETCH_STATUS = 0 BEGIN
-	    EXEC NN.Insert_Producto @material_id, @marca_id, @categoria_id, @producto_codigo, @producto_nombre, @producto_descripcion 
-	    FETCH NEXT FROM productoMigration INTO @material_id, @marca_id, @categoria_id, @producto_codigo, @producto_nombre, @producto_descripcion
-	END
-
-	CLOSE productoMigration
-	DEALLOCATE productoMigration
-GO
-
-/*********************PROVEEDOR Y PROVEEDOR DIRECCIÓN*********************/
-
-	DECLARE @proveedor_direccion_domicilio NVARCHAR(50),
-	@proveedor_cuit NVARCHAR(50),
-	@proveedor_mail NVARCHAR(50),
-	@proveedor_razon_social NVARCHAR(50),
-	@localidad_id INT,
-	@codigo_postal_id INT,
-	@direccionId INT
-
-	DECLARE proveedorMigration CURSOR FOR 
-		SELECT DISTINCT PROVEEDOR_DOMICILIO, PROVEEDOR_CUIT, PROVEEDOR_MAIL, PROVEEDOR_RAZON_SOCIAL, l.localidad_id, cp.cod_postal_id
-		FROM gd_esquema.Maestra m
-			JOIN nn.Localidad l ON m.PROVEEDOR_LOCALIDAD = l.localidad_nombre
-			JOIN nn.Provincia p ON m.PROVEEDOR_PROVINCIA = p.provincia_nombre
-				AND l.provincia_id = p.provincia_id
-			JOIN nn.Codigo_Postal cp ON m.PROVEEDOR_CODIGO_POSTAL = cp.cod_postal_codigo
-		WHERE PROVEEDOR_RAZON_SOCIAL IS NOT NULL
-
-	OPEN proveedorMigration
-	FETCH NEXT FROM proveedorMigration INTO @proveedor_direccion_domicilio, @proveedor_cuit, @proveedor_mail, @proveedor_razon_social, @localidad_id, @codigo_postal_id
-	WHILE @@FETCH_STATUS = 0 
-	BEGIN
-		EXEC @direccionId = NN.Insert_Proveedor_direccion @proveedor_direccion_domicilio, @localidad_id, @codigo_postal_id
-		EXEC NN.Insert_Proveedor @proveedor_cuit, @proveedor_razon_social, @proveedor_mail, @direccionId
-		FETCH NEXT FROM proveedorMigration INTO @proveedor_direccion_domicilio, @proveedor_cuit, @proveedor_mail, @proveedor_razon_social, @localidad_id, @codigo_postal_id
-	END
-
-	CLOSE proveedorMigration
-	DEALLOCATE proveedorMigration
-GO
-
-/*********************COMPRA Y COMPRA DESCUENTO*********************/
-
-	DECLARE
-	@compraId INT,
-	@compra_numero DECIMAL(19,0),
-	@compra_fecha DATE,
-	@compra_medio_pago NVARCHAR(255),
-	@compra_total DECIMAL(18,2) ,
-	@proveedor_id INT,
-	@compra_descuento_valor DECIMAL(18,2),
-	@compra_descuento_codigo DECIMAL(19,0) 
-
-	DECLARE compraMigration CURSOR FOR
-		SELECT DISTINCT m.COMPRA_NUMERO, m.COMPRA_FECHA, m.COMPRA_MEDIO_PAGO, m.COMPRA_TOTAL, prov.proveedor_id, m.DESCUENTO_COMPRA_CODIGO, m.DESCUENTO_COMPRA_VALOR
-		FROM gd_esquema.Maestra m
-			JOIN nn.Proveedor prov ON m.PROVEEDOR_CUIT = prov.proveedor_cuit
-		WHERE COMPRA_NUMERO IS NOT NULL
-
-	OPEN compraMigration
-	FETCH NEXT FROM compraMigration INTO @compra_numero, @compra_fecha, @compra_medio_pago, @compra_total, @proveedor_id, @compra_descuento_codigo, @compra_descuento_valor
-	WHILE @@FETCH_STATUS = 0 
-	BEGIN
-		EXEC @compraId = NN.Insert_Compra @proveedor_id, @compra_numero, @compra_fecha, @compra_medio_pago, @compra_total
-		IF @compra_descuento_codigo IS NOT NULL EXEC NN.Insert_Compra_descuento @compraId, @compra_descuento_valor, @compra_descuento_codigo
-		FETCH NEXT FROM proveedorMigration INTO @compra_numero, @compra_fecha, @compra_medio_pago, @compra_total, @proveedor_id, @compra_descuento_codigo, @compra_descuento_valor
-	END
-
-	CLOSE compraMigration
-	DEALLOCATE compraMigration
-GO
-
-
-/*********************PRODUCTO_VARIANTE*********************/
-
-    DECLARE @producto_id int
-    DECLARE @variante_id int
-    DECLARE @producto_variante_codigo nvarchar(50)
-    DECLARE @producto_variante_precio decimal(18,2)
-    DECLARE @producto_variante_cantidad decimal(18,0)
-
-	DECLARE productoVarianteMigration CURSOR FOR
--- 	    REVISAR
-        SELECT DISTINCT p.producto_id,
-                        v.variante_id,
-                        m.PRODUCTO_VARIANTE_CODIGO,
-                        AVG(m.COMPRA_PRODUCTO_PRECIO) as precio,
-                        (SELECT SUM(COMPRA_PRODUCTO_CANTIDAD) as CANTIDAD
-                             FROM gd_esquema.Maestra AS m1
-        WHERE COMPRA_PRODUCTO_CANTIDAD IS NOT NULL
-          AND m1.PRODUCTO_VARIANTE_CODIGO = m.PRODUCTO_VARIANTE_CODIGO
-        group by PRODUCTO_VARIANTE_CODIGO
-        ) as producto_variante_cantidad
-            from gd_esquema.Maestra as m
-            inner join NN.Producto as p
-                on m.PRODUCTO_CODIGO = p.producto_codigo
-            inner join NN.Variante as v
-                on m.PRODUCTO_VARIANTE = v.variante_descripcion
-        WHERE COMPRA_PRODUCTO_PRECIO IS NOT NULL
-        GROUP BY PRODUCTO_VARIANTE_CODIGO, p.producto_id, v.variante_id
-        ORDER BY 3
-	OPEN productoVarianteMigration
-	FETCH NEXT FROM productoVarianteMigration INTO @producto_id, @variante_id, @producto_variante_codigo, @producto_variante_precio, @producto_variante_cantidad
-	WHILE @@FETCH_STATUS = 0 BEGIN
-	    EXEC NN.Insert_Producto_Variante @producto_id, @variante_id, @producto_variante_codigo, @producto_variante_precio, @producto_variante_cantidad
-	    FETCH NEXT FROM productoVarianteMigration INTO @producto_id, @variante_id, @producto_variante_codigo, @producto_variante_precio, @producto_variante_cantidad
-	END
-
-	CLOSE productoVarianteMigration
-	DEALLOCATE productoVarianteMigration
-GO	
-
-/*********************VENTA_PRODUCTO*********************/
-/*
-    DECLARE @venta_id int
-    DECLARE @producto_variante_id int
-    DECLARE @venta_producto_precio decimal(18,2)
-    DECLARE @venta_producto_cantidad decimal(18,0)
-
-	DECLARE ventaProductoMigration 
-	CURSOR FOR @venta_id, @producto_variante_id, @venta_producto_precio, @venta_producto_cantidad
-	-- .SELECT
-	OPEN ventaProductoMigration
-	FETCH NEXT FROM ventaProductoMigration INTO @venta_id, @producto_variante_id, @venta_producto_precio, @venta_producto_cantidad
-	WHILE @@FETCH_STATUS = 0 BEGIN
-	    EXEC NN.Insert_Venta_Producto @venta_id, @producto_variante_id, @venta_producto_precio, @venta_producto_cantidad
-	    FETCH NEXT FROM ventaProductoMigration INTO @venta_id, @producto_variante_id, @venta_producto_precio, @venta_producto_cantidad
-	END
-
-	CLOSE ventaProductoMigration
-	DEALLOCATE ventaProductoMigration
-GO	
-*/
-/*********************COMPRA_PRODUCTO*********************/
-/*
-    DECLARE @compra_id int
-    DECLARE @producto_variante_id int
-    DECLARE @compra_producto_precio decimal(18,2)
-    DECLARE @compra_producto_cantidad decimal(18,0)
-
-	DECLARE compraProductoMigration 
-	CURSOR FOR @compra_id, @producto_variante_id, @compra_producto_precio, @compra_producto_cantidad
-	-- .SELECT
-	OPEN compraProductoMigration
-	FETCH NEXT FROM compraProductoMigration INTO @compra_id, @producto_variante_id, @compra_producto_precio, @compra_producto_cantidad
-	WHILE @@FETCH_STATUS = 0 BEGIN
-	    EXEC NN.Insert_Compra_Producto @compra_id, @producto_variante_id, @compra_producto_precio, @compra_producto_cantidad
-	    FETCH NEXT FROM compraProductoMigration INTO @compra_id, @producto_variante_id, @compra_producto_precio, @compra_producto_cantidad
-	END
-
-	CLOSE compraProductoMigration
-	DEALLOCATE compraProductoMigration
-GO	
-*/
 /*
 
 First insertion approach
 
 */
-/*
+INSERT INTO [NN].[Producto] (material_id, marca_id, categoria_id, producto_codigo, producto_nombre, producto_descripcion)
+SELECT material.material_id,
+       marca.marca_id,
+       categoria.categoria_id,
+       m.PRODUCTO_CODIGO as producto_codigo,
+       m.PRODUCTO_NOMBRE as producto_nombre,
+       m.PRODUCTO_DESCRIPCION as producto_descripcion
+FROM [gd_esquema].[Maestra] as m
+inner join [NN].[Material] as material
+    on material.material_descripcion = m.PRODUCTO_MATERIAL
+inner join [NN].[Marca] as marca
+    on marca.marca_descripcion = m.PRODUCTO_MARCA
+inner join [NN].[Categoria] as categoria
+    on categoria.categoria_descripcion = m.PRODUCTO_CATEGORIA
+GO
+
+INSERT INTO [NN].[Producto_variante] (producto_id, variante_id, producto_variante_codigo, producto_variante_precio, producto_variante_cantidad)
+select 1
+GO
+
 INSERT INTO [NN].[Tipo_Descuento] (tipo_descuento_concepto, venta_descuento_importe)
 SELECT DISTINCT VENTA_DESCUENTO_CONCEPTO, 0
 FROM gd_esquema.Maestra
@@ -1118,4 +815,49 @@ FROM gd_esquema.Maestra m
 WHERE VENTA_CUPON_CODIGO IS NOT NULL
 GO
 
+-- Full insertion example
+
+/*
+CREATE PROCEDURE NN.InsertCupon (
+  @cupon_codigo nvarchar(255),
+  @cupon_fecha_desde date,
+  @cupon_fecha_hasta date,
+  @cupon_importe decimal(18,2),
+  @cupon_valor decimal(18,2),
+  @cupon_tipo nvarchar(50)
+) AS BEGIN
+	INSERT INTO [NN].[Cupon] (cupon_codigo, cupon_fecha_desde, cupon_fecha_hasta, cupon_importe, cupon_valor, cupon_tipo)
+	VALUES (@cupon_codigo, @cupon_fecha_desde, @cupon_fecha_hasta, @cupon_importe, @cupon_valor, @cupon_tipo)
+END
+
+DECLARE @cupon_codigo nvarchar(255),
+  @cupon_fecha_desde date,
+  @cupon_fecha_hasta date,
+  @cupon_importe decimal(18,2),
+  @cupon_valor decimal(18,2),
+  @cupon_tipo nvarchar(50)
+DECLARE cuponesMigracion CURSOR FOR
+SELECT DISTINCT m.VENTA_CUPON_CODIGO, m.VENTA_CUPON_FECHA_DESDE, m.VENTA_CUPON_FECHA_HASTA, m.VENTA_CUPON_IMPORTE, m.VENTA_CUPON_VALOR, m.VENTA_CUPON_TIPO
+FROM gd_esquema.Maestra m
+WHERE VENTA_CUPON_CODIGO IS NOT NULL
+
+OPEN cuponesMigracion
+FETCH NEXT FROM cuponesMigracion   
+INTO @cupon_codigo,
+@cupon_fecha_desde,
+@cupon_fecha_hasta,
+@cupon_importe,
+@cupon_valor,
+@cupon_tipo
+WHILE @@FETCH_STATUS = 0 BEGIN
+  EXEC NN.InsertCupon @cupon_codigo, @cupon_fecha_desde, @cupon_fecha_hasta, @cupon_importe, @cupon_valor, @cupon_tipo
+
+  FETCH NEXT FROM cuponesMigracion   
+  INTO @cupon_codigo,
+  @cupon_fecha_desde,
+  @cupon_fecha_hasta,
+  @cupon_importe,
+  @cupon_valor,
+  @cupon_tipo
+END
 */
