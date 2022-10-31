@@ -151,7 +151,7 @@ CREATE TABLE NN.Compra(
 )
 GO
 
-CREATE TABLE NN.Compra_descuento(
+CREATE TABLE NN.Compra_Descuento(
 	compra_descuento_id int NOT NULL IDENTITY(1,1) PRIMARY KEY,
 	compra_id int NOT NULL FOREIGN KEY REFERENCES [NN].Proveedor(proveedor_id),
 	compra_descuento_valor DECIMAL(18,2) NOT NULL,
@@ -432,29 +432,6 @@ CREATE PROCEDURE NN.Insert_Producto_Variante(
 END
 GO
 
-CREATE PROCEDURE NN.Insert_Venta_Producto(
-  	@venta_id int,
-    @producto_variante_id int,
-    @venta_producto_precio decimal(18,2),
-    @venta_producto_cantidad decimal(18,0)
-) AS BEGIN
-	INSERT INTO [NN].[Venta_Producto] (venta_id, producto_variante_id, venta_producto_precio, venta_producto_cantidad)
-	VALUES (@venta_id, @producto_variante_id, @venta_producto_precio, @venta_producto_cantidad)
-END
-GO
-
-CREATE PROCEDURE NN.Insert_Compra_Producto(
-  	@compra_id int,
-    @producto_variante_id int,
-    @compra_producto_precio decimal(18,2),
-    @compra_producto_cantidad decimal(18,0)
-) AS BEGIN
-	INSERT INTO [NN].[Compra_Producto] (compra_id, producto_variante_id, compra_producto_precio, compra_producto_cantidad)
-	VALUES (@compra_id, @producto_variante_id, @compra_producto_precio, @compra_producto_cantidad)
-END
-GO
-
-
 CREATE PROCEDURE NN.Insert_Proveedor_direccion(
 	@proveedor_direccion_domicilio NVARCHAR(50),
 	@localidad_id INT,
@@ -490,13 +467,96 @@ CREATE PROCEDURE NN.Insert_Compra(
 END
 GO
 
-CREATE PROCEDURE NN.Insert_Compra_descuento(
+CREATE PROCEDURE NN.Insert_Compra_Descuento(
 	@compra_id INT,
 	@compra_descuento_valor DECIMAL(18,2),
 	@compra_descuento_codigo DECIMAL (19,0)
 ) AS BEGIN
 	INSERT INTO Compra_descuento(compra_id, compra_descuento_valor, compra_descuento_codigo)
 	VALUES(@compra_id, @compra_descuento_valor, @compra_descuento_codigo)
+END
+GO
+
+CREATE PROCEDURE NN.Insert_Compra_Producto(
+  	@compra_id int,
+    @producto_variante_id int,
+    @compra_producto_precio decimal(18,2),
+    @compra_producto_cantidad decimal(18,0)
+) AS BEGIN
+	INSERT INTO [NN].[Compra_Producto] (compra_id, producto_variante_id, compra_producto_precio, compra_producto_cantidad)
+	VALUES (@compra_id, @producto_variante_id, @compra_producto_precio, @compra_producto_cantidad)
+END
+GO
+
+CREATE PROCEDURE NN.Insert_Tipo_Descuento(
+	@venta_descuento_importe decimal(18,2),
+	@tipo_descuento_concepto nvarchar(255) 
+) AS BEGIN
+	INSERT INTO NN.Tipo_Descuento (venta_descuento_importe, tipo_descuento_concepto)
+	VALUES (@venta_descuento_importe, @tipo_descuento_concepto)
+END
+GO
+
+CREATE PROCEDURE NN.Insert_Cupon(
+	@cupon_codigo nvarchar(255),
+	@cupon_fecha_desde date,
+	@cupon_fecha_hasta date,
+	@cupon_importe decimal(18,2),
+	@cupon_valor decimal(18,2),
+	@cupon_tipo nvarchar(50)
+) AS BEGIN
+	INSERT INTO NN.Cupon (cupon_codigo, cupon_fecha_desde, cupon_fecha_hasta, cupon_importe, cupon_valor, cupon_tipo)
+	VALUES (@cupon_codigo, @cupon_fecha_desde, @cupon_fecha_hasta, @cupon_importe, @cupon_valor, @cupon_tipo)
+END
+GO
+
+CREATE PROCEDURE NN.Insert_Venta(
+	@cliente_id int, 
+	@venta_codigo decimal(19,0), 
+	@venta_fecha date, 
+	@venta_total decimal(18,2), 
+	@venta_canal_id int,
+	@venta_canal_costo decimal(18,2),
+	@venta_medio_envio_id int, 
+	@venta_envio_precio decimal(18,2), 
+	@venta_medio_pago_id int, 
+	@venta_medio_pago_costo decimal(18,2)
+) AS BEGIN
+	INSERT INTO NN.Venta (cliente_id, venta_codigo, venta_fecha, venta_total, venta_canal_id, venta_canal_costo,
+						  venta_medio_envio_id, venta_envio_precio, venta_medio_pago_id, venta_medio_pago_costo)
+	VALUES (@cliente_id, @venta_codigo, @venta_fecha, @venta_total, @venta_canal_id, @venta_canal_costo,
+			@venta_medio_envio_id, @venta_envio_precio, @venta_medio_pago_id, @venta_medio_pago_costo)
+END
+GO
+
+CREATE PROCEDURE NN.Insert_Venta_Producto(
+  	@venta_id int,
+    @producto_variante_id int,
+    @venta_producto_precio decimal(18,2),
+    @venta_producto_cantidad decimal(18,0)
+) AS BEGIN
+	INSERT INTO [NN].[Venta_Producto] (venta_id, producto_variante_id, venta_producto_precio, venta_producto_cantidad)
+	VALUES (@venta_id, @producto_variante_id, @venta_producto_precio, @venta_producto_cantidad)
+END
+GO
+
+CREATE PROCEDURE NN.Insert_Venta_Descuento(
+  	@venta_id int,
+    @tipo_descuento_id int,
+    @venta_descuento_importe decimal(18,2)
+) AS BEGIN
+	INSERT INTO [NN].[Venta_Descuento] (venta_id, tipo_descuento_id, venta_descuento_importe)
+	VALUES (@venta_id, @tipo_descuento_id, @venta_descuento_importe)
+END
+GO
+
+CREATE PROCEDURE NN.Insert_Venta_Cupon(
+  	@venta_id int,
+    @cupon_id int,
+    @venta_cupon_importe decimal(18,2)
+) AS BEGIN
+	INSERT INTO [NN].[Venta_Cupon] (venta_id, cupon_id, venta_cupon_importe)
+	VALUES (@venta_id, @cupon_id, @venta_cupon_importe)
 END
 GO
 
@@ -763,6 +823,7 @@ GO
 		JOIN [NN].[Localidad] l ON m1.CLIENTE_LOCALIDAD = l.localidad_nombre
 		JOIN [NN].[Codigo_Postal] cp ON m1.CLIENTE_CODIGO_POSTAL = cp.cod_postal_codigo 
 		WHERE m1.VENTA_MEDIO_ENVIO IS NOT NULL
+		order by 4
 			
 
 	OPEN venta_medio_envio_migracion
