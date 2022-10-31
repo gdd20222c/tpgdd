@@ -179,7 +179,6 @@ CREATE TABLE [NN].[Cupon] (
 	cupon_codigo nvarchar(255) NOT NULL,
     cupon_fecha_desde date NOT NULL,
     cupon_fecha_hasta date NOT NULL,
-    cupon_importe decimal(18,2) NOT NULL,
     cupon_valor decimal(18,2) NOT NULL,
     cupon_tipo nvarchar(50) NOT NULL,
 )
@@ -489,11 +488,10 @@ END
 GO
 
 CREATE PROCEDURE NN.Insert_Tipo_Descuento(
-	@venta_descuento_importe decimal(18,2),
 	@tipo_descuento_concepto nvarchar(255) 
 ) AS BEGIN
-	INSERT INTO NN.Tipo_Descuento (venta_descuento_importe, tipo_descuento_concepto)
-	VALUES (@venta_descuento_importe, @tipo_descuento_concepto)
+	INSERT INTO NN.Tipo_Descuento (tipo_descuento_concepto)
+	VALUES (@tipo_descuento_concepto)
 END
 GO
 
@@ -501,12 +499,11 @@ CREATE PROCEDURE NN.Insert_Cupon(
 	@cupon_codigo nvarchar(255),
 	@cupon_fecha_desde date,
 	@cupon_fecha_hasta date,
-	@cupon_importe decimal(18,2),
 	@cupon_valor decimal(18,2),
 	@cupon_tipo nvarchar(50)
 ) AS BEGIN
-	INSERT INTO NN.Cupon (cupon_codigo, cupon_fecha_desde, cupon_fecha_hasta, cupon_importe, cupon_valor, cupon_tipo)
-	VALUES (@cupon_codigo, @cupon_fecha_desde, @cupon_fecha_hasta, @cupon_importe, @cupon_valor, @cupon_tipo)
+	INSERT INTO NN.Cupon (cupon_codigo, cupon_fecha_desde, cupon_fecha_hasta, cupon_valor, cupon_tipo)
+	VALUES (@cupon_codigo, @cupon_fecha_desde, @cupon_fecha_hasta, @cupon_valor, @cupon_tipo)
 END
 GO
 
@@ -761,7 +758,7 @@ GO
 
 /****************** VENTA CANAL ******************/
 
-	DECLARE @venta_canal_descripcion nvarchar(255), 
+	DECLARE @venta_canal_descripcion nvarchar(2255), 
 			@venta_canal_costo decimal(18,2)
 
 	DECLARE venta_canal_migracion CURSOR FOR
@@ -1053,7 +1050,7 @@ GO
 	DEALLOCATE compraMigration
 GO
 
-
+/*
 /*********************PRODUCTO_VARIANTE*********************/
 
     DECLARE @producto_id int
@@ -1092,6 +1089,104 @@ GO
 	CLOSE productoVarianteMigration
 	DEALLOCATE productoVarianteMigration
 GO	
+*/
+
+/*********************COMPRA_PRODUCTO*********************/
+/*
+    DECLARE @compra_id int
+    DECLARE @producto_variante_id int
+    DECLARE @compra_producto_precio decimal(18,2)
+    DECLARE @compra_producto_cantidad decimal(18,0)
+
+	DECLARE compraProductoMigration 
+	CURSOR FOR @compra_id, @producto_variante_id, @compra_producto_precio, @compra_producto_cantidad
+	-- .SELECT
+	OPEN compraProductoMigration
+	FETCH NEXT FROM compraProductoMigration INTO @compra_id, @producto_variante_id, @compra_producto_precio, @compra_producto_cantidad
+	WHILE @@FETCH_STATUS = 0 BEGIN
+	    EXEC NN.Insert_Compra_Producto @compra_id, @producto_variante_id, @compra_producto_precio, @compra_producto_cantidad
+	    FETCH NEXT FROM compraProductoMigration INTO @compra_id, @producto_variante_id, @compra_producto_precio, @compra_producto_cantidad
+	END
+
+	CLOSE compraProductoMigration
+	DEALLOCATE compraProductoMigration
+GO	
+*/
+
+/*********************TIPO_DESCUENTO*********************/
+	--Revisar (puede que tengamos que agregar un atributo con el importe, pero saldria del total_venta - desc_importe)
+    DECLARE @tipo_descuento_concepto nvarchar(255)
+
+	DECLARE tipoDescuentoMigration 
+	CURSOR FOR 
+		SELECT DISTINCT VENTA_DESCUENTO_CONCEPTO 
+		FROM gd_esquema.Maestra
+		WHERE VENTA_DESCUENTO_CONCEPTO IS NOT NULL
+
+	OPEN tipoDescuentoMigration
+	FETCH NEXT FROM tipoDescuentoMigration INTO @tipo_descuento_concepto
+	WHILE @@FETCH_STATUS = 0 BEGIN
+	    EXEC NN.Insert_Tipo_Descuento @tipo_descuento_concepto
+	    FETCH NEXT FROM tipoDescuentoMigration INTO @tipo_descuento_concepto
+	END
+
+	CLOSE tipoDescuentoMigration
+	DEALLOCATE tipoDescuentoMigration
+GO	
+
+/*********************CUPON*********************/
+    DECLARE @cupon_codigo nvarchar(255), 
+			@cupon_fecha_desde date, 
+			@cupon_fecha_hasta date, 
+			@cupon_valor decimal(18,2), 
+			@cupon_tipo nvarchar(50)
+
+	DECLARE cuponMigration 
+	CURSOR FOR 
+		SELECT DISTINCT m.VENTA_CUPON_CODIGO, m.VENTA_CUPON_FECHA_DESDE, m.VENTA_CUPON_FECHA_HASTA, m.VENTA_CUPON_VALOR, m.VENTA_CUPON_TIPO
+		FROM gd_esquema.Maestra m
+		WHERE VENTA_CUPON_CODIGO IS NOT NULL
+
+	OPEN cuponMigration
+	FETCH NEXT FROM cuponMigration INTO @cupon_codigo, @cupon_fecha_desde, @cupon_fecha_hasta, @cupon_valor, @cupon_tipo
+	WHILE @@FETCH_STATUS = 0 BEGIN
+	    EXEC NN.Insert_Cupon @cupon_codigo, @cupon_fecha_desde, @cupon_fecha_hasta, @cupon_valor, @cupon_tipo
+	    FETCH NEXT FROM cuponMigration INTO @cupon_codigo, @cupon_fecha_desde, @cupon_fecha_hasta, @cupon_valor, @cupon_tipo
+	END
+
+	CLOSE cuponMigration 
+	DEALLOCATE cuponMigration 
+GO	
+
+
+/*********************VENTA*********************/
+/*    
+	DECLARE @venta_descuento_importe decimal(18,2),
+			@tipo_descuento_concepto nvarchar(255)
+
+	DECLARE tipoDescuentoMigration 
+	CURSOR FOR 
+		--Revisar
+		SELECT distinct c.cliente_id, m.VENTA_CODIGO, m.VENTA_FECHA, m.VENTA_TOTAL, vc.venta_canal_id, m.VENTA_CANAL_COSTO, vme.venta_medio_envio_id, m.VENTA_ENVIO_PRECIO, vmp.venta_medio_pago_id, m.VENTA_MEDIO_PAGO_COSTO
+		FROM gd_esquema.Maestra m
+		JOIN NN.Cliente c ON m.CLIENTE_DNI = c.cliente_dni and m.CLIENTE_APELLIDO = c.cliente_apellido
+		JOIN NN.Venta_canal vc ON m.VENTA_CANAL = vc.venta_canal_descripcion and m.VENTA_CANAL_COSTO = vc.venta_canal_costo
+		JOIN NN.Venta_medio_envio vme ON m.VENTA_MEDIO_ENVIO = vme.venta_medio_envio_descripcion and m.VENTA_ENVIO_PRECIO = vme.venta_medio_envio_precio
+		JOIN NN.Venta_medio_pago vmp ON m.VENTA_MEDIO_PAGO = vmp.venta_medio_pago_descripcion and m.VENTA_MEDIO_PAGO_COSTO = vmp.venta_medio_pago_costo
+		WHERE m.VENTA_CODIGO IS NOT NULL
+		order by 1
+
+	OPEN tipoDescuentoMigration
+	FETCH NEXT FROM tipoDescuentoMigration INTO @venta_descuento_importe, @tipo_descuento_concepto
+	WHILE @@FETCH_STATUS = 0 BEGIN
+	    EXEC NN.Insert_Tipo_Descuento @venta_descuento_importe, @tipo_descuento_concepto
+	    FETCH NEXT FROM tipoDescuentoMigration INTO @venta_descuento_importe, @tipo_descuento_concepto
+	END
+
+	CLOSE tipoDescuentoMigration
+	DEALLOCATE tipoDescuentoMigration
+GO
+*/
 
 /*********************VENTA_PRODUCTO*********************/
 /*
@@ -1114,69 +1209,56 @@ GO
 	DEALLOCATE ventaProductoMigration
 GO	
 */
-/*********************COMPRA_PRODUCTO*********************/
-/*
-    DECLARE @compra_id int
-    DECLARE @producto_variante_id int
-    DECLARE @compra_producto_precio decimal(18,2)
-    DECLARE @compra_producto_cantidad decimal(18,0)
 
-	DECLARE compraProductoMigration 
-	CURSOR FOR @compra_id, @producto_variante_id, @compra_producto_precio, @compra_producto_cantidad
-	-- .SELECT
-	OPEN compraProductoMigration
-	FETCH NEXT FROM compraProductoMigration INTO @compra_id, @producto_variante_id, @compra_producto_precio, @compra_producto_cantidad
+/*********************VENTA_DESCUENTO*********************/
+/*
+    DECLARE @venta_id int,
+			@tipo_descuento_id int,
+			@venta_descuento_importe decimal(18,2)
+
+	DECLARE ventaDescuentoMigration 
+	CURSOR FOR 
+		SELECT v.venta_id, td.tipo_descuento_id, m.VENTA_DESCUENTO_IMPORTE
+		FROM gd_esquema.Maestra m
+		JOIN NN.Venta v ON m.VENTA_CODIGO = v.venta_codigo
+		JOIN NN.Tipo_Descuento td ON m.VENTA_DESCUENTO_CONCEPTO = td.tipo_descuento_concepto
+		WHERE m.VENTA_DESCUENTO_IMPORTE IS NOT NULL
+
+	OPEN ventaDescuentoMigration
+	FETCH NEXT FROM ventaDescuentoMigration INTO @venta_id, @tipo_descuento_id, @venta_descuento_importe
 	WHILE @@FETCH_STATUS = 0 BEGIN
-	    EXEC NN.Insert_Compra_Producto @compra_id, @producto_variante_id, @compra_producto_precio, @compra_producto_cantidad
-	    FETCH NEXT FROM compraProductoMigration INTO @compra_id, @producto_variante_id, @compra_producto_precio, @compra_producto_cantidad
+	    EXEC NN.Insert_Venta_Descuento @venta_id, @tipo_descuento_id, @venta_descuento_importe
+	    FETCH NEXT FROM ventaDescuentoMigration INTO @venta_id, @tipo_descuento_id, @venta_descuento_importe
 	END
 
-	CLOSE compraProductoMigration
-	DEALLOCATE compraProductoMigration
+	CLOSE ventaDescuentoMigration
+	DEALLOCATE ventaDescuentoMigration
 GO	
 */
+
+/*********************VENTA_CUPON*********************/
 /*
+    DECLARE @venta_id int,
+			@cupon_id int,
+			@venta_cupon_importe decimal(18,2)
 
-First insertion approach
+	DECLARE ventaCuponMigration 
+	CURSOR FOR 
+		SELECT v.venta_id, c.cupon_id, m.VENTA_CUPON_IMPORTE
+		FROM gd_esquema.Maestra m
+		JOIN NN.Venta v ON m.VENTA_CODIGO = v.venta_codigo
+		JOIN NN.Cupon c ON m.VENTA_CUPON_CODIGO = c.cupon_codigo
+		WHERE m.VENTA_CUPON_IMPORTE IS NOT NULL
 
+	OPEN ventaCuponMigration
+	FETCH NEXT FROM ventaCuponMigration INTO @venta_id, @cupon_id, @venta_cupon_importe
+	WHILE @@FETCH_STATUS = 0 BEGIN
+	    EXEC NN.Insert_Venta_Cupon @venta_id, @cupon_id, @venta_cupon_importe
+	    FETCH NEXT FROM ventaCuponMigration INTO @venta_id, @cupon_id, @venta_cupon_importe
+	END
+
+	CLOSE ventaCuponMigration
+	DEALLOCATE ventaCuponMigration
+GO	
 */
-/*
-INSERT INTO [NN].[Tipo_Descuento] (tipo_descuento_concepto, venta_descuento_importe)
-SELECT DISTINCT VENTA_DESCUENTO_CONCEPTO, 0
-FROM gd_esquema.Maestra
-WHERE VENTA_DESCUENTO_CONCEPTO IS NOT NULL
-GO
 
-INSERT INTO [NN].[Venta_Descuento] (venta_id, tipo_descuento_id, venta_descuento_importe)
-SELECT v.venta_id, td.tipo_descuento_id, m.VENTA_DESCUENTO_IMPORTE
-FROM gd_esquema.Maestra m
-JOIN NN.Venta v ON m.VENTA_CODIGO = v.venta_codigo
-JOIN NN.Tipo_Descuento td ON m.VENTA_DESCUENTO_CONCEPTO = td.tipo_descuento_concepto
-WHERE m.VENTA_DESCUENTO_IMPORTE IS NOT NULL
-GO
-
-INSERT INTO [NN].[Venta](cliente_id, venta_codigo, venta_fecha, venta_total, venta_canal_id, venta_canal_costo, venta_medio_envio_id, venta_envio_precio, venta_medio_pago_id, venta_medio_pago_costo)
-SELECT c.cliente_id, m.VENTA_CODIGO, m.VENTA_FECHA, m.VENTA_TOTAL, vc.venta_canal_id, m.VENTA_CANAL_COSTO, vme.venta_medio_envio_id, m.VENTA_ENVIO_PRECIO, vmp.venta_medio_pago_id, m.VENTA_MEDIO_PAGO_COSTO
-FROM gd_esquema.Maestra m
-JOIN NN.Cliente c ON m.CLIENTE_DNI = c.cliente_dni
-JOIN NN.Venta_canal vc ON m.VENTA_CANAL = vc.venta_canal_descripcion
-JOIN NN.Venta_medio_envio vme ON m.VENTA_MEDIO_ENVIO = vme.venta_medio_envio_descripcion
-JOIN NN.Venta_medio_pago vmp ON m.VENTA_MEDIO_PAGO = vmp.venta_medio_pago_descripcion
-WHERE m.VENTA_CODIGO IS NOT NULL
-GO
-
-INSERT INTO [NN].[Venta_Cupon] (venta_id, cupon_id, venta_cupon_importe)
-SELECT v.venta_id, c.cupon_id, m.VENTA_CUPON_IMPORTE
-FROM gd_esquema.Maestra m
-JOIN NN.Venta v ON m.VENTA_CODIGO = v.venta_codigo
-JOIN NN.Cupon c ON m.VENTA_CUPON_CODIGO = c.cupon_codigo
-WHERE m.VENTA_CUPON_CODIGO IS NOT NULL
-GO
-
-INSERT INTO [NN].[Cupon] (cupon_codigo, cupon_fecha_desde, cupon_fecha_hasta, cupon_importe, cupon_valor, cupon_tipo)
-SELECT DISTINCT m.VENTA_CUPON_CODIGO, m.VENTA_CUPON_FECHA_DESDE, m.VENTA_CUPON_FECHA_HASTA, m.VENTA_CUPON_IMPORTE, m.VENTA_CUPON_VALOR, m.VENTA_CUPON_TIPO
-FROM gd_esquema.Maestra m
-WHERE VENTA_CUPON_CODIGO IS NOT NULL
-GO
-
-*/
