@@ -153,7 +153,7 @@ GO
 
 CREATE TABLE NN.Compra_Descuento(
 	compra_descuento_id int NOT NULL IDENTITY(1,1) PRIMARY KEY,
-	compra_id int NOT NULL FOREIGN KEY REFERENCES [NN].Proveedor(proveedor_id),
+	compra_id int NOT NULL FOREIGN KEY REFERENCES [NN].Compra(compra_id),
 	compra_descuento_valor DECIMAL(18,2) NOT NULL,
 	compra_descuento_codigo DECIMAL (19,0) NOT NULL
 )
@@ -665,9 +665,6 @@ GO
 		JOIN [NN].[Codigo_Postal] cp ON cp.cod_postal_codigo = m.CLIENTE_CODIGO_POSTAL
 		WHERE m.CLIENTE_DIRECCION IS NOT NULL
 
-
-
-
 	OPEN cliente_direccion_migracion
 	FETCH NEXT FROM cliente_direccion_migracion INTO 
 			@cliente_direccion, 
@@ -1035,14 +1032,17 @@ GO
 		FROM gd_esquema.Maestra m
 			JOIN nn.Proveedor prov ON m.PROVEEDOR_CUIT = prov.proveedor_cuit
 		WHERE COMPRA_NUMERO IS NOT NULL
+			--Dado que todas las compras tienen descuento directamente cargo las compras con descuento para optimizar la carga
+			AND m.DESCUENTO_COMPRA_CODIGO IS NOT NULL
+			order by prov.proveedor_id
 
 	OPEN compraMigration
 	FETCH NEXT FROM compraMigration INTO @compra_numero, @compra_fecha, @compra_medio_pago, @compra_total, @proveedor_id, @compra_descuento_codigo, @compra_descuento_valor
 	WHILE @@FETCH_STATUS = 0 
 	BEGIN
 		EXEC @compraId = NN.Insert_Compra @proveedor_id, @compra_numero, @compra_fecha, @compra_medio_pago, @compra_total
-		IF @compra_descuento_codigo IS NOT NULL EXEC NN.Insert_Compra_descuento @compraId, @compra_descuento_valor, @compra_descuento_codigo
-		FETCH NEXT FROM proveedorMigration INTO @compra_numero, @compra_fecha, @compra_medio_pago, @compra_total, @proveedor_id, @compra_descuento_codigo, @compra_descuento_valor
+		EXEC NN.Insert_Compra_Descuento @compraId, @compra_descuento_valor, @compra_descuento_codigo
+		FETCH NEXT FROM compraMigration INTO @compra_numero, @compra_fecha, @compra_medio_pago, @compra_total, @proveedor_id, @compra_descuento_codigo, @compra_descuento_valor
 	END
 
 	CLOSE compraMigration
