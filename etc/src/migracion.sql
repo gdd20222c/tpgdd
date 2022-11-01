@@ -1159,11 +1159,19 @@ GO
 
 
 /*********************VENTA*********************/
-/*    
-	DECLARE @venta_descuento_importe decimal(18,2),
-			@tipo_descuento_concepto nvarchar(255)
+   
+	DECLARE @cliente_id int, 
+			@venta_codigo decimal(19,0), 
+			@venta_fecha date, 
+			@venta_total decimal(18,2), 
+			@venta_canal_id int,
+			@venta_canal_costo decimal(18,2),
+			@venta_medio_envio_id int, 
+			@venta_envio_precio decimal(18,2), 
+			@venta_medio_pago_id int, 
+			@venta_medio_pago_costo decimal(18,2)
 
-	DECLARE tipoDescuentoMigration 
+	DECLARE ventaMigration 
 	CURSOR FOR 
 		--Revisar
 		SELECT distinct c.cliente_id, m.VENTA_CODIGO, m.VENTA_FECHA, m.VENTA_TOTAL, vc.venta_canal_id, m.VENTA_CANAL_COSTO, vme.venta_medio_envio_id, m.VENTA_ENVIO_PRECIO, vmp.venta_medio_pago_id, m.VENTA_MEDIO_PAGO_COSTO
@@ -1175,17 +1183,20 @@ GO
 		WHERE m.VENTA_CODIGO IS NOT NULL
 		order by 2,5,7,9
 
-	OPEN tipoDescuentoMigration
-	FETCH NEXT FROM tipoDescuentoMigration INTO @venta_descuento_importe, @tipo_descuento_concepto
+	OPEN ventaMigration 
+	FETCH NEXT FROM ventaMigration INTO @cliente_id, @venta_codigo, @venta_fecha, @venta_total, @venta_canal_id, @venta_canal_costo,
+			@venta_medio_envio_id, @venta_envio_precio, @venta_medio_pago_id, @venta_medio_pago_costo
 	WHILE @@FETCH_STATUS = 0 BEGIN
-	    EXEC NN.Insert_Tipo_Descuento @venta_descuento_importe, @tipo_descuento_concepto
-	    FETCH NEXT FROM tipoDescuentoMigration INTO @venta_descuento_importe, @tipo_descuento_concepto
+	    EXEC NN.Insert_Venta @cliente_id, @venta_codigo, @venta_fecha, @venta_total, @venta_canal_id, @venta_canal_costo,
+			@venta_medio_envio_id, @venta_envio_precio, @venta_medio_pago_id, @venta_medio_pago_costo
+	    FETCH NEXT FROM ventaMigration INTO @cliente_id, @venta_codigo, @venta_fecha, @venta_total, @venta_canal_id, @venta_canal_costo,
+			@venta_medio_envio_id, @venta_envio_precio, @venta_medio_pago_id, @venta_medio_pago_costo
 	END
 
-	CLOSE tipoDescuentoMigration
-	DEALLOCATE tipoDescuentoMigration
+	CLOSE ventaMigration 
+	DEALLOCATE ventaMigration 
 GO
-*/
+
 
 /*********************VENTA_PRODUCTO*********************/
 /*
