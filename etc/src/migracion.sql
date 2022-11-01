@@ -169,8 +169,7 @@ GO
 
 CREATE TABLE [NN].[Tipo_Descuento] (
     tipo_descuento_id int NOT NULL IDENTITY(1,1) PRIMARY KEY,
-	tipo_descuento_concepto nvarchar(255) NOT NULL,
-	venta_descuento_importe decimal(18,2) NOT NULL,
+	tipo_descuento_concepto nvarchar(255) NOT NULL
 )
 GO
 
@@ -1174,7 +1173,7 @@ GO
 		JOIN NN.Venta_medio_envio vme ON m.VENTA_MEDIO_ENVIO = vme.venta_medio_envio_descripcion and m.VENTA_ENVIO_PRECIO = vme.venta_medio_envio_precio
 		JOIN NN.Venta_medio_pago vmp ON m.VENTA_MEDIO_PAGO = vmp.venta_medio_pago_descripcion and m.VENTA_MEDIO_PAGO_COSTO = vmp.venta_medio_pago_costo
 		WHERE m.VENTA_CODIGO IS NOT NULL
-		order by 1
+		order by 2,5,7,9
 
 	OPEN tipoDescuentoMigration
 	FETCH NEXT FROM tipoDescuentoMigration INTO @venta_descuento_importe, @tipo_descuento_concepto
