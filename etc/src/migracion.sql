@@ -160,6 +160,7 @@ CREATE TABLE NN.Compra_Descuento(
 GO
 
 CREATE TABLE NN.Compra_Producto (
+	compra_producto_id int NOT NULL IDENTITY(1,1) PRIMARY KEY,
     compra_id int NOT NULL FOREIGN KEY REFERENCES NN.Compra(compra_id),
     producto_variante_id int NOT NULL FOREIGN KEY REFERENCES NN.Producto_Variante(producto_variante_id),
     compra_producto_precio decimal(18,2) NOT NULL,
@@ -567,15 +568,16 @@ GO
 	DECLARE @cod_postal_codigo decimal(18,0)
 
 	DECLARE cod_postal_migracion CURSOR FOR
-		SELECT 
+		SELECT DISTINCT
 			m1.CLIENTE_CODIGO_POSTAL
 		FROM gd_esquema.Maestra m1
 		WHERE m1.CLIENTE_CODIGO_POSTAL IS NOT NULL
 		UNION
-		SELECT 
+		SELECT DISTINCT
 			m2.PROVEEDOR_CODIGO_POSTAL
 		FROM gd_esquema.Maestra m2
 		WHERE m2.PROVEEDOR_CODIGO_POSTAL IS NOT NULL
+
 
 	OPEN cod_postal_migracion
 	FETCH NEXT FROM cod_postal_migracion INTO @cod_postal_codigo
@@ -594,12 +596,12 @@ GO
 	DECLARE @provincia_nombre nvarchar(255)
 
 	DECLARE provincia_migracion CURSOR FOR
-		SELECT 
+		SELECT DISTINCT
 			m1.CLIENTE_PROVINCIA
 		FROM gd_esquema.Maestra m1
 		WHERE m1.CLIENTE_PROVINCIA IS NOT NULL
 		UNION
-		SELECT 
+		SELECT DISTINCT
 			m2.PROVEEDOR_PROVINCIA
 		FROM gd_esquema.Maestra m2
 		WHERE m2.PROVEEDOR_PROVINCIA IS NOT NULL
@@ -718,10 +720,10 @@ GO
 			cp.cod_postal_id,
 			c.cliente_id
 		FROM gd_esquema.Maestra m
-		JOIN NN.Localidad l ON l.localidad_nombre = m.CLIENTE_LOCALIDAD
-		JOIN NN.Provincia p ON p.provincia_nombre = m.CLIENTE_PROVINCIA AND p.provincia_id = l.provincia_id
-		JOIN NN.Codigo_Postal cp ON cp.cod_postal_codigo = m.CLIENTE_CODIGO_POSTAL
-		JOIN NN.Cliente c ON c.cliente_dni = m.CLIENTE_DNI and c.cliente_apellido = m.CLIENTE_APELLIDO
+			JOIN NN.Localidad l ON l.localidad_nombre = m.CLIENTE_LOCALIDAD
+			JOIN NN.Provincia p ON p.provincia_nombre = m.CLIENTE_PROVINCIA AND p.provincia_id = l.provincia_id
+			JOIN NN.Codigo_Postal cp ON cp.cod_postal_codigo = m.CLIENTE_CODIGO_POSTAL
+			JOIN NN.Cliente c ON c.cliente_dni = m.CLIENTE_DNI and c.cliente_apellido = m.CLIENTE_APELLIDO
 		WHERE m.CLIENTE_DIRECCION IS NOT NULL
 
 	OPEN cliente_direccion_migracion
@@ -809,10 +811,10 @@ GO
 			l.localidad_id,
 			cp.cod_postal_id 
 		FROM gd_esquema.Maestra m1
-		JOIN NN.Localidad l ON m1.CLIENTE_LOCALIDAD = l.localidad_nombre
-		JOIN NN.Codigo_Postal cp ON m1.CLIENTE_CODIGO_POSTAL = cp.cod_postal_codigo 
+			JOIN NN.Localidad l ON m1.CLIENTE_LOCALIDAD = l.localidad_nombre
+			JOIN NN.Codigo_Postal cp ON m1.CLIENTE_CODIGO_POSTAL = cp.cod_postal_codigo 
 		WHERE m1.VENTA_MEDIO_ENVIO IS NOT NULL
-		order by 4
+		order by 3, 4
 			
 
 	OPEN venta_medio_envio_migracion
@@ -961,13 +963,14 @@ GO
 				m.PRODUCTO_NOMBRE as producto_nombre,
 				m.PRODUCTO_DESCRIPCION as producto_descripcion
 		FROM gd_esquema.Maestra as m
-		inner join NN.Material as material
+		INNER JOIN NN.Material as material
 			on material.material_descripcion = m.PRODUCTO_MATERIAL
-		inner join NN.Marca as marca
+		INNER JOIN NN.Marca as marca
 			on marca.marca_descripcion = m.PRODUCTO_MARCA
-		inner join NN.Categoria as categoria
+		INNER JOIN NN.Categoria as categoria
 			on categoria.categoria_descripcion = m.PRODUCTO_CATEGORIA
 		order by 4	
+
     OPEN productoMigration 
 	FETCH NEXT FROM productoMigration INTO @material_id, @marca_id, @categoria_id, @producto_codigo, @producto_nombre, @producto_descripcion
 	WHILE @@FETCH_STATUS = 0 BEGIN
@@ -978,9 +981,7 @@ GO
 	CLOSE productoMigration
 	DEALLOCATE productoMigration
 GO
-
 /*********************PROVEEDOR Y PROVEEDOR DIRECCIÓN*********************/
-
 	DECLARE @proveedor_direccion_domicilio NVARCHAR(50),
 	@proveedor_cuit NVARCHAR(50),
 	@proveedor_mail NVARCHAR(50),
@@ -997,6 +998,7 @@ GO
 				AND l.provincia_id = p.provincia_id
 			JOIN nn.Codigo_Postal cp ON m.PROVEEDOR_CODIGO_POSTAL = cp.cod_postal_codigo
 		WHERE PROVEEDOR_RAZON_SOCIAL IS NOT NULL
+		ORDER BY PROVEEDOR_MAIL
 
 	OPEN proveedorMigration
 	FETCH NEXT FROM proveedorMigration INTO @proveedor_direccion_domicilio, @proveedor_cuit, @proveedor_mail, @proveedor_razon_social, @localidad_id, @codigo_postal_id
@@ -1012,16 +1014,14 @@ GO
 GO
 
 /*********************COMPRA Y COMPRA DESCUENTO*********************/
-
-	DECLARE
-	@compraId INT,
-	@compra_numero DECIMAL(19,0),
-	@compra_fecha DATE,
-	@compra_medio_pago NVARCHAR(255),
-	@compra_total DECIMAL(18,2) ,
-	@proveedor_id INT,
-	@compra_descuento_valor DECIMAL(18,2),
-	@compra_descuento_codigo DECIMAL(19,0) 
+	DECLARE @compraId INT,
+		@compra_numero DECIMAL(19,0),
+		@compra_fecha DATE,
+		@compra_medio_pago NVARCHAR(255),
+		@compra_total DECIMAL(18,2) ,
+		@proveedor_id INT,
+		@compra_descuento_valor DECIMAL(18,2),
+		@compra_descuento_codigo DECIMAL(19,0) 
 
 	DECLARE compraMigration CURSOR FOR
 		SELECT DISTINCT m.COMPRA_NUMERO, m.COMPRA_FECHA, m.COMPRA_MEDIO_PAGO, m.COMPRA_TOTAL, prov.proveedor_id, m.DESCUENTO_COMPRA_CODIGO, m.DESCUENTO_COMPRA_VALOR
@@ -1044,10 +1044,7 @@ GO
 	CLOSE compraMigration
 	DEALLOCATE compraMigration
 GO
-
-
 /*********************PRODUCTO_VARIANTE*********************/
-/*
     DECLARE @producto_id int
     DECLARE @variante_id int
     DECLARE @producto_variante_codigo nvarchar(50)
@@ -1055,25 +1052,30 @@ GO
     DECLARE @producto_variante_cantidad decimal(18,0)
 
 	DECLARE productoVarianteMigration CURSOR FOR
--- 	    REVISAR
-        SELECT DISTINCT p.producto_id,
-                        v.variante_id,
-                        m.PRODUCTO_VARIANTE_CODIGO,
-                        AVG(m.COMPRA_PRODUCTO_PRECIO) as precio,
-                        (SELECT SUM(COMPRA_PRODUCTO_CANTIDAD) as CANTIDAD
-                             FROM gd_esquema.Maestra AS m1
-        WHERE COMPRA_PRODUCTO_CANTIDAD IS NOT NULL
-          AND m1.PRODUCTO_VARIANTE_CODIGO = m.PRODUCTO_VARIANTE_CODIGO
-        group by PRODUCTO_VARIANTE_CODIGO
-        ) as producto_variante_cantidad
-            from gd_esquema.Maestra as m
-            inner join NN.Producto as p
-                on m.PRODUCTO_CODIGO = p.producto_codigo
-            inner join NN.Variante as v
-                on m.PRODUCTO_VARIANTE = v.variante_descripcion
-        WHERE COMPRA_PRODUCTO_PRECIO IS NOT NULL
-        GROUP BY PRODUCTO_VARIANTE_CODIGO, p.producto_id, v.variante_id
-        ORDER BY 3
+		SELECT DISTINCT p.producto_id,
+		v.variante_id,
+		m.PRODUCTO_VARIANTE_CODIGO,
+		MAX(m.COMPRA_PRODUCTO_PRECIO) precio,
+		(
+			SELECT SUM(COMPRA_PRODUCTO_CANTIDAD)
+			FROM gd_esquema.Maestra m1
+			WHERE COMPRA_PRODUCTO_CANTIDAD IS NOT NULL
+				AND m1.PRODUCTO_VARIANTE_CODIGO = m.PRODUCTO_VARIANTE_CODIGO
+			GROUP BY PRODUCTO_VARIANTE_CODIGO
+		) - (
+			SELECT SUM(VENTA_PRODUCTO_CANTIDAD)
+			FROM gd_esquema.Maestra m1
+			WHERE VENTA_PRODUCTO_CANTIDAD IS NOT NULL
+				AND m1.PRODUCTO_VARIANTE_CODIGO = m.PRODUCTO_VARIANTE_CODIGO
+			GROUP BY PRODUCTO_VARIANTE_CODIGO
+		) producto_variante_cantidad
+		FROM gd_esquema.Maestra m
+			INNER JOIN NN.Producto p ON m.PRODUCTO_CODIGO = p.producto_codigo
+			INNER JOIN NN.Variante v ON m.PRODUCTO_VARIANTE = v.variante_descripcion
+		WHERE PRODUCTO_VARIANTE_CODIGO IS NOT NULL
+		GROUP BY PRODUCTO_VARIANTE_CODIGO, p.producto_id, v.variante_id
+		ORDER BY 5 DESC
+
 	OPEN productoVarianteMigration
 	FETCH NEXT FROM productoVarianteMigration INTO @producto_id, @variante_id, @producto_variante_codigo, @producto_variante_precio, @producto_variante_cantidad
 	WHILE @@FETCH_STATUS = 0 BEGIN
@@ -1083,19 +1085,28 @@ GO
 
 	CLOSE productoVarianteMigration
 	DEALLOCATE productoVarianteMigration
-GO	
-*/
-
+GO
 /*********************COMPRA_PRODUCTO*********************/
 /*
-    DECLARE @compra_id int
+	DECLARE @compra_id int
     DECLARE @producto_variante_id int
     DECLARE @compra_producto_precio decimal(18,2)
     DECLARE @compra_producto_cantidad decimal(18,0)
 
-	DECLARE compraProductoMigration 
-	CURSOR FOR @compra_id, @producto_variante_id, @compra_producto_precio, @compra_producto_cantidad
-	-- .SELECT
+	DECLARE compraProductoMigration CURSOR FOR 
+		SELECT c.compra_id, pv.producto_variante_id, m.COMPRA_PRODUCTO_PRECIO, SUM(m.COMPRA_PRODUCTO_CANTIDAD)
+		FROM gd_esquema.Maestra m 
+			JOIN nn.Compra c ON m.COMPRA_NUMERO = c.compra_numero
+			JOIN nn.Proveedor p ON m.PROVEEDOR_CUIT = p.proveedor_cuit and c.proveedor_id = p.proveedor_id
+			JOIN nn.Producto_variante pv ON m.PRODUCTO_VARIANTE_CODIGO = pv.producto_variante_codigo
+		WHERE m.COMPRA_NUMERO IS NOT NULL
+		GROUP BY c.compra_id, pv.producto_variante_id, m.COMPRA_PRODUCTO_PRECIO,m.compra_numero
+		ORDER BY compra_id, producto_variante_id
+		-- Puede haber en una compra dos items del mismo producto pero distinta cantidad?
+		-- Estos son algunos de los datos que se repiten
+		-- AND compra_id = 1 
+		-- AND producto_variante_id IN (2,18, 29)
+
 	OPEN compraProductoMigration
 	FETCH NEXT FROM compraProductoMigration INTO @compra_id, @producto_variante_id, @compra_producto_precio, @compra_producto_cantidad
 	WHILE @@FETCH_STATUS = 0 BEGIN
@@ -1105,11 +1116,13 @@ GO
 
 	CLOSE compraProductoMigration
 	DEALLOCATE compraProductoMigration
-GO	
+GO
 */
-
 /*********************TIPO_DESCUENTO*********************/
 	--Revisar (puede que tengamos que agregar un atributo con el importe, pero saldria del total_venta - desc_importe)
+	--Quimey
+	--El porcentaje de decuento ronda el 20+-3, hay varios que se salen de la norma, y ninguno parece tener un patron.
+	--Yo dejaría solo los conceptos
     DECLARE @tipo_descuento_concepto nvarchar(255)
 
 	DECLARE tipoDescuentoMigration 
@@ -1153,7 +1166,6 @@ GO
 	CLOSE cuponMigration 
 	DEALLOCATE cuponMigration 
 GO	
-
 
 /*********************VENTA*********************/
 	DECLARE @cliente_id int, 
