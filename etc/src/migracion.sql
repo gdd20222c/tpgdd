@@ -29,14 +29,6 @@ CREATE TABLE [NN].[Localidad] (
 )
 GO
 
-CREATE TABLE [NN].[Cliente_Direccion] (
-	cliente_direccion_id int NOT NULL IDENTITY(1,1) PRIMARY KEY,
-	cliente_direccion nvarchar(255) NOT NULL,
-	localidad_id int NOT NULL FOREIGN KEY REFERENCES [NN].[Localidad](localidad_id),
-	cod_postal_id int NOT NULL FOREIGN KEY REFERENCES [NN].[Codigo_Postal](cod_postal_id)
-)
-GO
-
 CREATE TABLE [NN].[Cliente] (
     cliente_id int NOT NULL IDENTITY(1,1) PRIMARY KEY,
     cliente_nombre nvarchar(255) NOT NULL,
@@ -44,8 +36,16 @@ CREATE TABLE [NN].[Cliente] (
 	cliente_telefono decimal(18,0) NOT NULL,
 	cliente_dni decimal(18,0) NOT NULL,
 	cliente_mail nvarchar(255) NOT NULL,
-	cliente_fecha_nac date NOT NULL,
-	cliente_direccion_id int NOT NULL FOREIGN KEY REFERENCES [NN].[Cliente_Direccion](cliente_direccion_id)
+	cliente_fecha_nac date NOT NULL
+)
+GO
+
+CREATE TABLE [NN].[Cliente_Direccion] (
+	cliente_direccion_id int NOT NULL IDENTITY(1,1) PRIMARY KEY,
+	cliente_direccion nvarchar(255) NOT NULL,
+	localidad_id int NOT NULL FOREIGN KEY REFERENCES [NN].[Localidad](localidad_id),
+	cod_postal_id int NOT NULL FOREIGN KEY REFERENCES [NN].[Codigo_Postal](cod_postal_id),
+	cliente_id int NOT NULL FOREIGN KEY REFERENCES [NN].[Cliente](cliente_id)
 )
 GO
 
@@ -268,34 +268,13 @@ BEGIN
 END
 GO
 
-CREATE PROCEDURE [NN].[Insert_Cliente_Direccion] (
-		@cliente_direccion nvarchar(255), 
-		@localidad_id int,
-		@cod_postal_id int
-	)
-AS 
-BEGIN
-	INSERT INTO [NN].[Cliente_Direccion] (
-		cliente_direccion, 
-		localidad_id,
-		cod_postal_id
-	)
-	VALUES (
-		@cliente_direccion, 
-		@localidad_id,
-		@cod_postal_id
-	)
-END
-GO
-
 CREATE PROCEDURE [NN].[Insert_Cliente] (
 		@cliente_nombre nvarchar(255), 
 		@cliente_apellido nvarchar(255), 
 		@cliente_telefono decimal(18,0), 
 		@cliente_dni decimal(18,0), 
 		@cliente_mail nvarchar(255), 
-		@cliente_fecha_nac date,
-		@cliente_direccion_id int
+		@cliente_fecha_nac date
 	)
 AS 
 BEGIN
@@ -305,16 +284,37 @@ BEGIN
 		cliente_telefono,
 		cliente_dni,
 		cliente_mail,
-		cliente_fecha_nac,
-		cliente_direccion_id)
+		cliente_fecha_nac)
 	VALUES (
 		@cliente_nombre,
 		@cliente_apellido,
 		@cliente_telefono,
 		@cliente_dni,
 		@cliente_mail,
-		@cliente_fecha_nac,
-		@cliente_direccion_id
+		@cliente_fecha_nac
+	)
+END
+GO
+
+CREATE PROCEDURE [NN].[Insert_Cliente_Direccion] (
+		@cliente_direccion nvarchar(255), 
+		@localidad_id int,
+		@cod_postal_id int,
+		@cliente_id int
+	)
+AS 
+BEGIN
+	INSERT INTO [NN].[Cliente_Direccion] (
+		cliente_direccion, 
+		localidad_id,
+		cod_postal_id,
+		cliente_id
+	)
+	VALUES (
+		@cliente_direccion, 
+		@localidad_id,
+		@cod_postal_id,
+		@cliente_id
 	)
 END
 GO
@@ -648,44 +648,6 @@ GO
 	DEALLOCATE localidad_migracion
 GO
 
-/****************** CLIENTE DIRECCION ******************/
-	DECLARE 
-		@cliente_direccion nvarchar(255), 
-		@localidad_id int, 
-		@cod_postal_id int
-
-	DECLARE cliente_direccion_migracion CURSOR FOR
-		SELECT DISTINCT
-			m.CLIENTE_DIRECCION,
-			l.localidad_id,
-			cp.cod_postal_id
-		FROM [gd_esquema].[Maestra] m
-		JOIN [NN].[Localidad] l ON l.localidad_nombre = m.CLIENTE_LOCALIDAD
-		JOIN [NN].[Provincia] p ON p.provincia_nombre = m.CLIENTE_PROVINCIA
-		JOIN [NN].[Codigo_Postal] cp ON cp.cod_postal_codigo = m.CLIENTE_CODIGO_POSTAL
-		WHERE m.CLIENTE_DIRECCION IS NOT NULL
-
-	OPEN cliente_direccion_migracion
-	FETCH NEXT FROM cliente_direccion_migracion INTO 
-			@cliente_direccion, 
-			@localidad_id, 
-			@cod_postal_id
-	WHILE @@FETCH_STATUS = 0 
-	BEGIN
-		EXEC [NN].[Insert_Cliente_Direccion]			
-			@cliente_direccion, 
-			@localidad_id, 
-			@cod_postal_id
-		FETCH NEXT FROM cliente_direccion_migracion INTO
-			@cliente_direccion, 
-			@localidad_id, 
-			@cod_postal_id
-	END
-
-	CLOSE cliente_direccion_migracion
-	DEALLOCATE cliente_direccion_migracion
-GO
-
 /****************** CLIENTE ******************/
 
 	DECLARE @cliente_nombre nvarchar(255), 
@@ -693,8 +655,7 @@ GO
 			@cliente_telefono decimal(18,0), 
 			@cliente_dni decimal(18,0), 
 			@cliente_mail nvarchar(255), 
-			@cliente_fecha_nac date,
-			@cliente_direccion_id int
+			@cliente_fecha_nac date
 
 	DECLARE cliente_migracion CURSOR FOR
 		SELECT DISTINCT
@@ -703,21 +664,15 @@ GO
 			m1.CLIENTE_TELEFONO, 
 			m1.CLIENTE_DNI, 
 			m1.CLIENTE_MAIL, 
-			m1.CLIENTE_FECHA_NAC,
-			cd.cliente_direccion_id
+			m1.CLIENTE_FECHA_NAC
 		FROM [gd_esquema].[Maestra] m1
-		JOIN [NN].[Cliente_Direccion] cd
-		ON m1.CLIENTE_DIRECCION = cd.cliente_direccion 
-		JOIN [NN].[Localidad] l
-		ON m1.CLIENTE_LOCALIDAD = l.localidad_nombre
 		WHERE
 			m1.CLIENTE_NOMBRE IS NOT NULL AND
 			m1.CLIENTE_APELLIDO IS NOT NULL AND
 			m1.CLIENTE_TELEFONO IS NOT NULL AND
 			m1.CLIENTE_DNI IS NOT NULL AND
 			m1.CLIENTE_MAIL IS NOT NULL AND
-			m1.CLIENTE_FECHA_NAC IS NOT NULL 
-
+			m1.CLIENTE_FECHA_NAC IS NOT NULL
 
 	OPEN cliente_migracion
 	FETCH NEXT FROM cliente_migracion INTO 
@@ -726,8 +681,7 @@ GO
 			@cliente_telefono, 
 			@cliente_dni, 
 			@cliente_mail, 
-			@cliente_fecha_nac,
-			@cliente_direccion_id
+			@cliente_fecha_nac
 	WHILE @@FETCH_STATUS = 0 
 	BEGIN
 		EXEC [NN].[Insert_Cliente]			
@@ -736,20 +690,62 @@ GO
 			@cliente_telefono, 
 			@cliente_dni, 
 			@cliente_mail, 
-			@cliente_fecha_nac,
-			@cliente_direccion_id
+			@cliente_fecha_nac
 		FETCH NEXT FROM cliente_migracion INTO
 			@cliente_nombre, 
 			@cliente_apellido, 
 			@cliente_telefono, 
 			@cliente_dni, 
 			@cliente_mail, 
-			@cliente_fecha_nac,
-			@cliente_direccion_id
+			@cliente_fecha_nac
 	END
 
 	CLOSE cliente_migracion
 	DEALLOCATE cliente_migracion
+GO
+
+/****************** CLIENTE DIRECCION ******************/
+	DECLARE 
+		@cliente_direccion nvarchar(255), 
+		@localidad_id int, 
+		@cod_postal_id int,
+		@cliente_id int
+
+	DECLARE cliente_direccion_migracion CURSOR FOR
+		SELECT DISTINCT
+			m.CLIENTE_DIRECCION,
+			l.localidad_id,
+			cp.cod_postal_id,
+			c.cliente_id
+		FROM [gd_esquema].[Maestra] m
+		JOIN [NN].[Localidad] l ON l.localidad_nombre = m.CLIENTE_LOCALIDAD
+		JOIN NN.Provincia p ON p.provincia_nombre = m.CLIENTE_PROVINCIA AND p.provincia_id = l.provincia_id
+		JOIN [NN].[Codigo_Postal] cp ON cp.cod_postal_codigo = m.CLIENTE_CODIGO_POSTAL
+		JOIN NN.Cliente c ON c.cliente_dni = m.CLIENTE_DNI and c.cliente_apellido = m.CLIENTE_APELLIDO
+		WHERE m.CLIENTE_DIRECCION IS NOT NULL
+
+	OPEN cliente_direccion_migracion
+	FETCH NEXT FROM cliente_direccion_migracion INTO 
+			@cliente_direccion, 
+			@localidad_id, 
+			@cod_postal_id,
+			@cliente_id
+	WHILE @@FETCH_STATUS = 0 
+	BEGIN
+		EXEC NN.Insert_Cliente_Direccion		
+			@cliente_direccion, 
+			@localidad_id, 
+			@cod_postal_id,
+			@cliente_id
+		FETCH NEXT FROM cliente_direccion_migracion INTO
+			@cliente_direccion, 
+			@localidad_id, 
+			@cod_postal_id,
+			@cliente_id
+	END
+
+	CLOSE cliente_direccion_migracion
+	DEALLOCATE cliente_direccion_migracion
 GO
 
 /****************** VENTA CANAL ******************/
@@ -1134,6 +1130,7 @@ GO
 GO	
 
 /*********************CUPON*********************/
+
     DECLARE @cupon_codigo nvarchar(255), 
 			@cupon_fecha_desde date, 
 			@cupon_fecha_hasta date, 
@@ -1160,20 +1157,20 @@ GO
 
 /*********************VENTA*********************/
 	DECLARE @cliente_id int, 
-	@venta_codigo decimal(19,0), 
-	@venta_fecha date, 
-	@venta_total decimal(18,2), 
-	@venta_canal_id int,
-	@venta_canal_costo decimal(18,2),
-	@venta_medio_envio_id int, 
-	@venta_envio_precio decimal(18,2), 
-	@venta_medio_pago_id int, 
-	@venta_medio_pago_costo decimal(18,2)
+			@venta_codigo decimal(19,0), 
+			@venta_fecha date, 
+			@venta_total decimal(18,2), 
+			@venta_canal_id int,
+			@venta_canal_costo decimal(18,2),
+			@venta_medio_envio_id int, 
+			@venta_envio_precio decimal(18,2), 
+			@venta_medio_pago_id int, 
+			@venta_medio_pago_costo decimal(18,2)
 
-	DECLARE tipoDescuentoMigration 
+	DECLARE ventaMigration 
 	CURSOR FOR 
-		--Revisar
-		SELECT DISTINCT c.cliente_id,
+		SELECT DISTINCT 
+			c.cliente_id,
 			m.VENTA_CODIGO,
 			m.VENTA_FECHA,
 			m.VENTA_TOTAL,
@@ -1185,7 +1182,7 @@ GO
 			m.VENTA_MEDIO_PAGO_COSTO
 		FROM gd_esquema.Maestra m
 			JOIN NN.Cliente c ON m.CLIENTE_DNI = c.cliente_dni
-			JOIN NN.Cliente_Direccion cd ON cd.cliente_direccion_id = c.cliente_direccion_id
+			JOIN NN.Cliente_Direccion cd ON cd.cliente_id = c.cliente_id
 			JOIN NN.Codigo_Postal cp ON cp.cod_postal_id = cd.cod_postal_id
 			JOIN NN.Venta_canal vc ON m.VENTA_CANAL = vc.venta_canal_descripcion
 			JOIN NN.Venta_medio_envio vme ON m.VENTA_MEDIO_ENVIO = vme.venta_medio_envio_descripcion
@@ -1197,18 +1194,46 @@ GO
 			AND m.VENTA_CANAL IS NOT NULL
 			AND m.VENTA_MEDIO_ENVIO IS NOT NULL 
 			AND m.VENTA_MEDIO_PAGO IS NOT NULL
-			--AND m.VENTA_CODIGO = 127030
-		--order by  m.VENTA_CODIGO
 
-	OPEN tipoDescuentoMigration
-	FETCH NEXT FROM tipoDescuentoMigration INTO @venta_descuento_importe, @tipo_descuento_concepto
+	OPEN ventaMigration 
+	FETCH NEXT FROM ventaMigration INTO 
+			@cliente_id,
+			@venta_codigo, 
+			@venta_fecha, 
+			@venta_total, 
+			@venta_canal_id,
+			@venta_canal_costo,
+			@venta_medio_envio_id, 
+			@venta_envio_precio, 
+			@venta_medio_pago_id, 
+			@venta_medio_pago_costo
 	WHILE @@FETCH_STATUS = 0 BEGIN
-	    EXEC NN.Insert_Tipo_Descuento @venta_descuento_importe, @tipo_descuento_concepto
-	    FETCH NEXT FROM tipoDescuentoMigration INTO @venta_descuento_importe, @tipo_descuento_concepto
+	    EXEC NN.Insert_Venta
+			@cliente_id,
+			@venta_codigo, 
+			@venta_fecha, 
+			@venta_total, 
+			@venta_canal_id,
+			@venta_canal_costo,
+			@venta_medio_envio_id, 
+			@venta_envio_precio, 
+			@venta_medio_pago_id, 
+			@venta_medio_pago_costo
+	    FETCH NEXT FROM ventaMigration INTO 
+			@cliente_id,
+			@venta_codigo, 
+			@venta_fecha, 
+			@venta_total, 
+			@venta_canal_id,
+			@venta_canal_costo,
+			@venta_medio_envio_id, 
+			@venta_envio_precio, 
+			@venta_medio_pago_id, 
+			@venta_medio_pago_costo
 	END
 
-	CLOSE tipoDescuentoMigration
-	DEALLOCATE tipoDescuentoMigration
+	CLOSE ventaMigration
+	DEALLOCATE ventaMigration 
 GO
 
 /*********************VENTA_PRODUCTO*********************/
@@ -1234,14 +1259,16 @@ GO
 */
 
 /*********************VENTA_DESCUENTO*********************/
-/*
+
+	--Esto estaria bien si tenemos en cuenta que solo se puede aplicar 1 vez 1 tipo_descuento sobre 1 venta
+	--Revisar : si para una misma venta, se puede hacer un mismo tipo_descuento más de 1 vez
     DECLARE @venta_id int,
 			@tipo_descuento_id int,
 			@venta_descuento_importe decimal(18,2)
 
 	DECLARE ventaDescuentoMigration 
 	CURSOR FOR 
-		SELECT v.venta_id, td.tipo_descuento_id, m.VENTA_DESCUENTO_IMPORTE
+		SELECT distinct v.venta_id, td.tipo_descuento_id, m.VENTA_DESCUENTO_IMPORTE
 		FROM gd_esquema.Maestra m
 		JOIN NN.Venta v ON m.VENTA_CODIGO = v.venta_codigo
 		JOIN NN.Tipo_Descuento td ON m.VENTA_DESCUENTO_CONCEPTO = td.tipo_descuento_concepto
@@ -1257,10 +1284,10 @@ GO
 	CLOSE ventaDescuentoMigration
 	DEALLOCATE ventaDescuentoMigration
 GO	
-*/
+
 
 /*********************VENTA_CUPON*********************/
-/*
+
     DECLARE @venta_id int,
 			@cupon_id int,
 			@venta_cupon_importe decimal(18,2)
@@ -1272,6 +1299,7 @@ GO
 		JOIN NN.Venta v ON m.VENTA_CODIGO = v.venta_codigo
 		JOIN NN.Cupon c ON m.VENTA_CUPON_CODIGO = c.cupon_codigo
 		WHERE m.VENTA_CUPON_IMPORTE IS NOT NULL
+		order by 1,2
 
 	OPEN ventaCuponMigration
 	FETCH NEXT FROM ventaCuponMigration INTO @venta_id, @cupon_id, @venta_cupon_importe
@@ -1283,5 +1311,5 @@ GO
 	CLOSE ventaCuponMigration
 	DEALLOCATE ventaCuponMigration
 GO	
-*/
+
 
