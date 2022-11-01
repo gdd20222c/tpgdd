@@ -1049,9 +1049,9 @@ GO
 	DEALLOCATE compraMigration
 GO
 
-/*
-/*********************PRODUCTO_VARIANTE*********************/
 
+/*********************PRODUCTO_VARIANTE*********************/
+/*
     DECLARE @producto_id int
     DECLARE @variante_id int
     DECLARE @producto_variante_codigo nvarchar(50)
@@ -1159,44 +1159,57 @@ GO
 
 
 /*********************VENTA*********************/
-   
 	DECLARE @cliente_id int, 
-			@venta_codigo decimal(19,0), 
-			@venta_fecha date, 
-			@venta_total decimal(18,2), 
-			@venta_canal_id int,
-			@venta_canal_costo decimal(18,2),
-			@venta_medio_envio_id int, 
-			@venta_envio_precio decimal(18,2), 
-			@venta_medio_pago_id int, 
-			@venta_medio_pago_costo decimal(18,2)
+	@venta_codigo decimal(19,0), 
+	@venta_fecha date, 
+	@venta_total decimal(18,2), 
+	@venta_canal_id int,
+	@venta_canal_costo decimal(18,2),
+	@venta_medio_envio_id int, 
+	@venta_envio_precio decimal(18,2), 
+	@venta_medio_pago_id int, 
+	@venta_medio_pago_costo decimal(18,2)
 
-	DECLARE ventaMigration 
+	DECLARE tipoDescuentoMigration 
 	CURSOR FOR 
 		--Revisar
-		SELECT distinct c.cliente_id, m.VENTA_CODIGO, m.VENTA_FECHA, m.VENTA_TOTAL, vc.venta_canal_id, m.VENTA_CANAL_COSTO, vme.venta_medio_envio_id, m.VENTA_ENVIO_PRECIO, vmp.venta_medio_pago_id, m.VENTA_MEDIO_PAGO_COSTO
+		SELECT DISTINCT c.cliente_id,
+			m.VENTA_CODIGO,
+			m.VENTA_FECHA,
+			m.VENTA_TOTAL,
+			vc.venta_canal_id,
+			m.VENTA_CANAL_COSTO,
+			vme.venta_medio_envio_id,
+			m.VENTA_ENVIO_PRECIO,
+			vmp.venta_medio_pago_id,
+			m.VENTA_MEDIO_PAGO_COSTO
 		FROM gd_esquema.Maestra m
-		JOIN NN.Cliente c ON m.CLIENTE_DNI = c.cliente_dni and m.CLIENTE_APELLIDO = c.cliente_apellido
-		JOIN NN.Venta_canal vc ON m.VENTA_CANAL = vc.venta_canal_descripcion and m.VENTA_CANAL_COSTO = vc.venta_canal_costo
-		JOIN NN.Venta_medio_envio vme ON m.VENTA_MEDIO_ENVIO = vme.venta_medio_envio_descripcion and m.VENTA_ENVIO_PRECIO = vme.venta_medio_envio_precio
-		JOIN NN.Venta_medio_pago vmp ON m.VENTA_MEDIO_PAGO = vmp.venta_medio_pago_descripcion and m.VENTA_MEDIO_PAGO_COSTO = vmp.venta_medio_pago_costo
+			JOIN NN.Cliente c ON m.CLIENTE_DNI = c.cliente_dni
+			JOIN NN.Cliente_Direccion cd ON cd.cliente_direccion_id = c.cliente_direccion_id
+			JOIN NN.Codigo_Postal cp ON cp.cod_postal_id = cd.cod_postal_id
+			JOIN NN.Venta_canal vc ON m.VENTA_CANAL = vc.venta_canal_descripcion
+			JOIN NN.Venta_medio_envio vme ON m.VENTA_MEDIO_ENVIO = vme.venta_medio_envio_descripcion
+				AND m.VENTA_ENVIO_PRECIO = vme.venta_medio_envio_precio
+				AND cd.localidad_id = vme.localidad_id
+				AND cp.cod_postal_id = vme.cod_postal_id
+			JOIN NN.Venta_medio_pago vmp ON m.VENTA_MEDIO_PAGO = vmp.venta_medio_pago_descripcion
 		WHERE m.VENTA_CODIGO IS NOT NULL
-		order by 2,5,7,9
+			AND m.VENTA_CANAL IS NOT NULL
+			AND m.VENTA_MEDIO_ENVIO IS NOT NULL 
+			AND m.VENTA_MEDIO_PAGO IS NOT NULL
+			--AND m.VENTA_CODIGO = 127030
+		--order by  m.VENTA_CODIGO
 
-	OPEN ventaMigration 
-	FETCH NEXT FROM ventaMigration INTO @cliente_id, @venta_codigo, @venta_fecha, @venta_total, @venta_canal_id, @venta_canal_costo,
-			@venta_medio_envio_id, @venta_envio_precio, @venta_medio_pago_id, @venta_medio_pago_costo
+	OPEN tipoDescuentoMigration
+	FETCH NEXT FROM tipoDescuentoMigration INTO @venta_descuento_importe, @tipo_descuento_concepto
 	WHILE @@FETCH_STATUS = 0 BEGIN
-	    EXEC NN.Insert_Venta @cliente_id, @venta_codigo, @venta_fecha, @venta_total, @venta_canal_id, @venta_canal_costo,
-			@venta_medio_envio_id, @venta_envio_precio, @venta_medio_pago_id, @venta_medio_pago_costo
-	    FETCH NEXT FROM ventaMigration INTO @cliente_id, @venta_codigo, @venta_fecha, @venta_total, @venta_canal_id, @venta_canal_costo,
-			@venta_medio_envio_id, @venta_envio_precio, @venta_medio_pago_id, @venta_medio_pago_costo
+	    EXEC NN.Insert_Tipo_Descuento @venta_descuento_importe, @tipo_descuento_concepto
+	    FETCH NEXT FROM tipoDescuentoMigration INTO @venta_descuento_importe, @tipo_descuento_concepto
 	END
 
-	CLOSE ventaMigration 
-	DEALLOCATE ventaMigration 
+	CLOSE tipoDescuentoMigration
+	DEALLOCATE tipoDescuentoMigration
 GO
-
 
 /*********************VENTA_PRODUCTO*********************/
 /*
