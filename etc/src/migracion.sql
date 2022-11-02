@@ -1320,7 +1320,6 @@ GO
 		JOIN NN.Venta v ON m.VENTA_CODIGO = v.venta_codigo
 		JOIN NN.Cupon c ON m.VENTA_CUPON_CODIGO = c.cupon_codigo
 		WHERE m.VENTA_CUPON_IMPORTE IS NOT NULL
-		order by 1,2
 
 	OPEN ventaCuponMigration
 	FETCH NEXT FROM ventaCuponMigration INTO @venta_id, @cupon_id, @venta_cupon_importe
