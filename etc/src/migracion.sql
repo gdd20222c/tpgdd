@@ -9,6 +9,8 @@ GO
 ================TABLES CREATION==================
 =================================================
 */
+
+
 CREATE TABLE NN.Codigo_Postal (
 	cod_postal_id int NOT NULL IDENTITY(1,1) PRIMARY KEY,
 	cod_postal_codigo decimal(18,0) NOT NULL
@@ -224,12 +226,6 @@ CREATE TABLE NN.Venta_Cupon (
 )
 GO
 
-/*
-=================================================
-================INDEXES CREATION=================
-=================================================
-*/
-
 
 
 /*
@@ -237,6 +233,8 @@ GO
 ================STORE PROCEDURES=================
 =================================================
 */
+
+
 
 CREATE PROCEDURE NN.Insert_Codigo_Postal 
 	(@cod_postal_codigo decimal(18,0))
@@ -559,13 +557,17 @@ CREATE PROCEDURE NN.Insert_Venta_Cupon(
 END
 GO
 
+
+
 /*
 =================================================
 ================INSERTION LOGIC==================
 =================================================
 */
 
-/****************** CODIGO POSTAL ******************/
+
+
+/****************** INSERT CODIGO POSTAL ******************/
 
 	DECLARE @cod_postal_codigo decimal(18,0)
 
@@ -593,7 +595,7 @@ GO
 	DEALLOCATE cod_postal_migracion
 GO
 
-/****************** PROVINCIA ******************/
+/****************** INSERT PROVINCIA ******************/
 
 	DECLARE @provincia_nombre nvarchar(255)
 
@@ -620,7 +622,7 @@ GO
 	DEALLOCATE provincia_migracion
 GO
 
-/****************** LOCALIDAD ******************/
+/****************** INSERT LOCALIDAD ******************/
 
 	DECLARE @localidad_nombre nvarchar(255), 
 			@provincia_id int
@@ -652,7 +654,7 @@ GO
 	DEALLOCATE localidad_migracion
 GO
 
-/****************** CLIENTE ******************/
+/****************** INSERT CLIENTE ******************/
 
 	DECLARE @cliente_nombre nvarchar(255), 
 			@cliente_apellido nvarchar(255), 
@@ -708,7 +710,7 @@ GO
 	DEALLOCATE cliente_migracion
 GO
 
-/****************** CLIENTE DIRECCION ******************/
+/****************** INSERT CLIENTE DIRECCION ******************/
 
 	DECLARE 
 		@cliente_direccion nvarchar(255), 
@@ -753,7 +755,7 @@ GO
 	DEALLOCATE cliente_direccion_migracion
 GO
 
-/****************** VENTA CANAL ******************/
+/****************** INSERT VENTA CANAL ******************/
 
 	DECLARE @venta_canal_descripcion nvarchar(2255), 
 			@venta_canal_costo decimal(18,2)
@@ -777,7 +779,7 @@ GO
 	DEALLOCATE venta_canal_migracion
 GO
 
-/****************** VENTA MEDIO PAGO ******************/
+/****************** INSERT VENTA MEDIO PAGO ******************/
 
 	DECLARE @venta_medio_pago_descripcion nvarchar(255), 
 			@venta_medio_pago_costo decimal(18,2)
@@ -801,7 +803,7 @@ GO
 	DEALLOCATE venta_medio_pago_migracion
 GO
 
-/****************** VENTA MEDIO ENVIO ******************/
+/****************** INSERT VENTA MEDIO ENVIO ******************/
 
 	DECLARE @venta_medio_envio_descripcion nvarchar(255), 
 			@venta_medio_envio_precio decimal(18,2), 
@@ -845,7 +847,7 @@ GO
 	DEALLOCATE venta_medio_envio_migracion
 GO
 
-/********************CATEGORIA**********************/
+/******************** INSERT CATEGORIA **********************/
 
 	DECLARE @categoria_descripcion varchar(255)
 
@@ -866,7 +868,7 @@ GO
 	DEALLOCATE categoriaMigration
 GO
 
-/**********************MARCA**********************/
+/********************** INSERT MARCA **********************/
 
 	DECLARE @marca_descripcion varchar(255)
 
@@ -887,7 +889,7 @@ GO
 	DEALLOCATE marcaMigration
 GO
 
-/*********************MATERIAL********************/
+/********************* INSERT MATERIAL ********************/
 
 	DECLARE @material_descripcion varchar(255)
 
@@ -908,7 +910,7 @@ GO
 	DEALLOCATE materialMigration
 GO
 
-/******************TIPO VARIANTE******************/
+/****************** INSERT TIPO VARIANTE ******************/
 
     DECLARE @tipo_variante_descripcion varchar(255)
 
@@ -929,7 +931,7 @@ GO
 	DEALLOCATE tipoVarianteMigration
 GO
 
-/*********************VARIANTE*********************/
+/********************* INSERT VARIANTE *********************/
 
     DECLARE @variante_descripcion varchar(50)
 	DECLARE @tipo_variante_id int
@@ -956,7 +958,7 @@ GO
 	DEALLOCATE varianteMigration
 GO
 
-/*********************PRODUCTO*********************/
+/********************* INSERT PRODUCTO *********************/
 
 	DECLARE @material_id int
 	DECLARE @marca_id int 
@@ -991,7 +993,7 @@ GO
 	CLOSE productoMigration
 	DEALLOCATE productoMigration
 GO
-/*********************PROVEEDOR Y PROVEEDOR DIRECCIÓN*********************/
+/********************* INSERT PROVEEDOR Y PROVEEDOR DIRECCIÓN *********************/
 
 	DECLARE @proveedor_direccion_domicilio NVARCHAR(50),
 	@proveedor_cuit NVARCHAR(50),
@@ -1024,7 +1026,7 @@ GO
 	DEALLOCATE proveedorMigration
 GO
 
-/*********************COMPRA Y COMPRA DESCUENTO*********************/
+/********************* INSERT COMPRA Y COMPRA DESCUENTO *********************/
 
 	DECLARE @compraId INT,
 		@compra_numero DECIMAL(19,0),
@@ -1056,7 +1058,7 @@ GO
 	CLOSE compraMigration
 	DEALLOCATE compraMigration
 GO
-/*********************PRODUCTO_VARIANTE*********************/
+/********************* INSERT PRODUCTO_VARIANTE *********************/
 
     DECLARE @producto_id int
     DECLARE @variante_id int
@@ -1099,7 +1101,7 @@ GO
 	CLOSE productoVarianteMigration
 	DEALLOCATE productoVarianteMigration
 GO
-/*********************COMPRA_PRODUCTO*********************/
+/********************* INSERT COMPRA_PRODUCTO *********************/
 
 	DECLARE @compra_id int
     DECLARE @producto_variante_id int
@@ -1126,7 +1128,7 @@ GO
 	DEALLOCATE compraProductoMigration
 GO
 
-/*********************TIPO_DESCUENTO*********************/
+/********************* INSERT TIPO_DESCUENTO *********************/
 
     DECLARE @tipo_descuento_concepto nvarchar(255)
 
@@ -1147,7 +1149,7 @@ GO
 	DEALLOCATE tipoDescuentoMigration
 GO	
 
-/*********************CUPON*********************/
+/********************* INSERT CUPON *********************/
 
     DECLARE @cupon_codigo nvarchar(255), 
 			@cupon_fecha_desde date, 
@@ -1172,7 +1174,7 @@ GO
 	DEALLOCATE cuponMigration 
 GO	
 
-/*********************VENTA*********************/
+/********************* INSERT VENTA *********************/
 
 	DECLARE @cliente_id int, 
 			@venta_codigo decimal(19,0), 
@@ -1254,7 +1256,7 @@ GO
 	DEALLOCATE ventaMigration 
 GO
 
-/*********************VENTA_PRODUCTO*********************/
+/********************* INSERT VENTA_PRODUCTO *********************/
 
     DECLARE @venta_id int
     DECLARE @producto_variante_id int
@@ -1281,7 +1283,7 @@ GO
 GO	
 
 
-/*********************VENTA_DESCUENTO*********************/
+/********************* INSERT VENTA_DESCUENTO *********************/
 
     DECLARE @venta_id int,
 			@tipo_descuento_id int,
@@ -1307,7 +1309,7 @@ GO
 GO	
 
 
-/*********************VENTA_CUPON*********************/
+/********************* INSERT VENTA_CUPON *********************/
 
     DECLARE @venta_id int,
 			@cupon_id int,
