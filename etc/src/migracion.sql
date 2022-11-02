@@ -200,6 +200,7 @@ CREATE TABLE NN.Venta(
 GO
 
 CREATE TABLE NN.Venta_Producto (
+    venta_producto_id int NOT NULL IDENTITY(1,1) PRIMARY KEY,
     venta_id int NOT NULL FOREIGN KEY REFERENCES NN.Venta(venta_id),
     producto_variante_id int NOT NULL FOREIGN KEY REFERENCES NN.Producto_variante(producto_variante_id),
     venta_producto_precio decimal(18,2) NOT NULL,
@@ -216,6 +217,7 @@ CREATE TABLE NN.Venta_Descuento (
 GO
 
 CREATE TABLE NN.Venta_Cupon (
+    venta_cupon_id int NOT NULL IDENTITY(1,1) PRIMARY KEY,
 	venta_id int NOT NULL FOREIGN KEY REFERENCES NN.Venta(venta_id),
     cupon_id int NOT NULL FOREIGN KEY REFERENCES NN.Cupon(cupon_id),
 	venta_cupon_importe decimal(18,2) NOT NULL,
@@ -707,6 +709,7 @@ GO
 GO
 
 /****************** CLIENTE DIRECCION ******************/
+
 	DECLARE 
 		@cliente_direccion nvarchar(255), 
 		@localidad_id int, 
@@ -799,6 +802,7 @@ GO
 GO
 
 /****************** VENTA MEDIO ENVIO ******************/
+
 	DECLARE @venta_medio_envio_descripcion nvarchar(255), 
 			@venta_medio_envio_precio decimal(18,2), 
 			@localidad_id int, 
@@ -842,6 +846,7 @@ GO
 GO
 
 /********************CATEGORIA**********************/
+
 	DECLARE @categoria_descripcion varchar(255)
 
 	DECLARE categoriaMigration CURSOR FOR
@@ -862,6 +867,7 @@ GO
 GO
 
 /**********************MARCA**********************/
+
 	DECLARE @marca_descripcion varchar(255)
 
 	DECLARE marcaMigration CURSOR FOR
@@ -882,6 +888,7 @@ GO
 GO
 
 /*********************MATERIAL********************/
+
 	DECLARE @material_descripcion varchar(255)
 
 	DECLARE materialMigration CURSOR FOR
@@ -902,6 +909,7 @@ GO
 GO
 
 /******************TIPO VARIANTE******************/
+
     DECLARE @tipo_variante_descripcion varchar(255)
 
 	DECLARE tipoVarianteMigration CURSOR FOR
@@ -922,6 +930,7 @@ GO
 GO
 
 /*********************VARIANTE*********************/
+
     DECLARE @variante_descripcion varchar(50)
 	DECLARE @tipo_variante_id int
 
@@ -948,6 +957,7 @@ GO
 GO
 
 /*********************PRODUCTO*********************/
+
 	DECLARE @material_id int
 	DECLARE @marca_id int 
 	DECLARE @categoria_id int
@@ -982,6 +992,7 @@ GO
 	DEALLOCATE productoMigration
 GO
 /*********************PROVEEDOR Y PROVEEDOR DIRECCIÓN*********************/
+
 	DECLARE @proveedor_direccion_domicilio NVARCHAR(50),
 	@proveedor_cuit NVARCHAR(50),
 	@proveedor_mail NVARCHAR(50),
@@ -1014,6 +1025,7 @@ GO
 GO
 
 /*********************COMPRA Y COMPRA DESCUENTO*********************/
+
 	DECLARE @compraId INT,
 		@compra_numero DECIMAL(19,0),
 		@compra_fecha DATE,
@@ -1045,6 +1057,7 @@ GO
 	DEALLOCATE compraMigration
 GO
 /*********************PRODUCTO_VARIANTE*********************/
+
     DECLARE @producto_id int
     DECLARE @variante_id int
     DECLARE @producto_variante_codigo nvarchar(50)
@@ -1087,25 +1100,20 @@ GO
 	DEALLOCATE productoVarianteMigration
 GO
 /*********************COMPRA_PRODUCTO*********************/
-/*
+
 	DECLARE @compra_id int
     DECLARE @producto_variante_id int
     DECLARE @compra_producto_precio decimal(18,2)
     DECLARE @compra_producto_cantidad decimal(18,0)
 
 	DECLARE compraProductoMigration CURSOR FOR 
-		SELECT c.compra_id, pv.producto_variante_id, m.COMPRA_PRODUCTO_PRECIO, SUM(m.COMPRA_PRODUCTO_CANTIDAD)
-		FROM gd_esquema.Maestra m 
-			JOIN nn.Compra c ON m.COMPRA_NUMERO = c.compra_numero
-			JOIN nn.Proveedor p ON m.PROVEEDOR_CUIT = p.proveedor_cuit and c.proveedor_id = p.proveedor_id
-			JOIN nn.Producto_variante pv ON m.PRODUCTO_VARIANTE_CODIGO = pv.producto_variante_codigo
-		WHERE m.COMPRA_NUMERO IS NOT NULL
-		GROUP BY c.compra_id, pv.producto_variante_id, m.COMPRA_PRODUCTO_PRECIO,m.compra_numero
-		ORDER BY compra_id, producto_variante_id
-		-- Puede haber en una compra dos items del mismo producto pero distinta cantidad?
-		-- Estos son algunos de los datos que se repiten
-		-- AND compra_id = 1 
-		-- AND producto_variante_id IN (2,18, 29)
+		SELECT c.compra_id, pv.producto_variante_id, m.COMPRA_PRODUCTO_PRECIO, SUM(m.COMPRA_PRODUCTO_CANTIDAD)  as cantidad
+        FROM gd_esquema.Maestra m
+            JOIN nn.Compra c ON m.COMPRA_NUMERO = c.compra_numero
+            JOIN nn.Producto_variante pv ON m.PRODUCTO_VARIANTE_CODIGO = pv.producto_variante_codigo
+        WHERE m.COMPRA_NUMERO IS NOT NULL AND m.PRODUCTO_VARIANTE_CODIGO IS NOT NULL
+        GROUP BY c.compra_id, pv.producto_variante_id, m.COMPRA_PRODUCTO_PRECIO,m.compra_numero
+        ORDER BY compra_id, producto_variante_id
 
 	OPEN compraProductoMigration
 	FETCH NEXT FROM compraProductoMigration INTO @compra_id, @producto_variante_id, @compra_producto_precio, @compra_producto_cantidad
@@ -1117,12 +1125,9 @@ GO
 	CLOSE compraProductoMigration
 	DEALLOCATE compraProductoMigration
 GO
-*/
+
 /*********************TIPO_DESCUENTO*********************/
-	--Revisar (puede que tengamos que agregar un atributo con el importe, pero saldria del total_venta - desc_importe)
-	--Quimey
-	--El porcentaje de decuento ronda el 20+-3, hay varios que se salen de la norma, y ninguno parece tener un patron.
-	--Yo dejaría solo los conceptos
+
     DECLARE @tipo_descuento_concepto nvarchar(255)
 
 	DECLARE tipoDescuentoMigration 
@@ -1168,6 +1173,7 @@ GO
 GO	
 
 /*********************VENTA*********************/
+
 	DECLARE @cliente_id int, 
 			@venta_codigo decimal(19,0), 
 			@venta_fecha date, 
@@ -1249,15 +1255,20 @@ GO
 GO
 
 /*********************VENTA_PRODUCTO*********************/
-/*
+
     DECLARE @venta_id int
     DECLARE @producto_variante_id int
     DECLARE @venta_producto_precio decimal(18,2)
     DECLARE @venta_producto_cantidad decimal(18,0)
 
-	DECLARE ventaProductoMigration 
-	CURSOR FOR @venta_id, @producto_variante_id, @venta_producto_precio, @venta_producto_cantidad
-	-- .SELECT
+	DECLARE ventaProductoMigration
+	CURSOR FOR
+        SELECT v.venta_id, pv.producto_variante_id, m.VENTA_PRODUCTO_PRECIO, SUM(m.VENTA_PRODUCTO_CANTIDAD) as cantidad
+        FROM gd_esquema.Maestra m
+            JOIN nn.Venta v ON m.VENTA_CODIGO = v.venta_codigo
+            JOIN nn.Producto_variante pv ON m.PRODUCTO_VARIANTE_CODIGO = pv.producto_variante_codigo
+        group by v.venta_id, pv.producto_variante_id, v.venta_id, m.VENTA_PRODUCTO_PRECIO
+        order by 1
 	OPEN ventaProductoMigration
 	FETCH NEXT FROM ventaProductoMigration INTO @venta_id, @producto_variante_id, @venta_producto_precio, @venta_producto_cantidad
 	WHILE @@FETCH_STATUS = 0 BEGIN
@@ -1268,12 +1279,10 @@ GO
 	CLOSE ventaProductoMigration
 	DEALLOCATE ventaProductoMigration
 GO	
-*/
+
 
 /*********************VENTA_DESCUENTO*********************/
 
-	--Esto estaria bien si tenemos en cuenta que solo se puede aplicar 1 vez 1 tipo_descuento sobre 1 venta
-	--Revisar : si para una misma venta, se puede hacer un mismo tipo_descuento más de 1 vez
     DECLARE @venta_id int,
 			@tipo_descuento_id int,
 			@venta_descuento_importe decimal(18,2)

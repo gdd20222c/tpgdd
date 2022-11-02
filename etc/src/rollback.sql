@@ -42,43 +42,43 @@ GO
 /****** Object:  StoredProcedure [NN].[Insert_Categoria]    Script Date: 29/10/2022 18:01:20 ******/
 DROP PROCEDURE [NN].[Insert_Categoria]
 GO
-ALTER TABLE [NN].[Venta_Producto] DROP CONSTRAINT [FK__Venta_Pro__venta__60FC61CA]
+ALTER TABLE [NN].[Venta_Producto] DROP CONSTRAINT [FK__Venta_Pro__venta__489AC854]
 GO
-ALTER TABLE [NN].[Venta_Producto] DROP CONSTRAINT [FK__Venta_Pro__venta__22FF2F51]
+ALTER TABLE [NN].[Venta_Producto] DROP CONSTRAINT [FK__Venta_Pro__venta__489AC854]
 GO
-ALTER TABLE [NN].[Venta_Producto] DROP CONSTRAINT [FK__Venta_Pro__produ__60083D91]
+ALTER TABLE [NN].[Venta_Producto] DROP CONSTRAINT [FK__Venta_Pro__produ__498EEC8D]
 GO
-ALTER TABLE [NN].[Venta_Producto] DROP CONSTRAINT [FK__Venta_Pro__produ__23F3538A]
+ALTER TABLE [NN].[Venta_Producto] DROP CONSTRAINT [FK__Venta_Pro__produ__498EEC8D]
 GO
-ALTER TABLE [NN].[Venta_Medio_Envio] DROP CONSTRAINT [FK__Venta_Med__local__5F141958]
+ALTER TABLE [NN].[Venta_Medio_Envio] DROP CONSTRAINT [FK__Venta_Med__local__19DFD96B]
 GO
-ALTER TABLE [NN].[Venta_Medio_Envio] DROP CONSTRAINT [FK__Venta_Med__local__019E3B86]
+ALTER TABLE [NN].[Venta_Medio_Envio] DROP CONSTRAINT [FK__Venta_Med__local__19DFD96B]
 GO
-ALTER TABLE [NN].[Venta_Medio_Envio] DROP CONSTRAINT [FK__Venta_Med__cod_p__5E1FF51F]
+ALTER TABLE [NN].[Venta_Medio_Envio] DROP CONSTRAINT [FK__Venta_Med__cod_p__1AD3FDA4]
 GO
-ALTER TABLE [NN].[Venta_Medio_Envio] DROP CONSTRAINT [FK__Venta_Med__cod_p__02925FBF]
+ALTER TABLE [NN].[Venta_Medio_Envio] DROP CONSTRAINT [FK__Venta_Med__cod_p__1AD3FDA4]
 GO
-ALTER TABLE [NN].[Venta_Descuento] DROP CONSTRAINT [FK__Venta_Des__venta__5D2BD0E6]
+ALTER TABLE [NN].[Venta_Descuento] DROP CONSTRAINT [FK__Venta_Des__venta__4C6B5938]
 GO
-ALTER TABLE [NN].[Venta_Descuento] DROP CONSTRAINT [FK__Venta_Des__venta__26CFC035]
+ALTER TABLE [NN].[Venta_Descuento] DROP CONSTRAINT [FK__Venta_Des__venta__4C6B5938]
 GO
-ALTER TABLE [NN].[Venta_Descuento] DROP CONSTRAINT [FK__Venta_Des__tipo___5C37ACAD]
+ALTER TABLE [NN].[Venta_Descuento] DROP CONSTRAINT [FK__Venta_Des__tipo___4D5F7D71]
 GO
-ALTER TABLE [NN].[Venta_Descuento] DROP CONSTRAINT [FK__Venta_Des__tipo___27C3E46E]
+ALTER TABLE [NN].[Venta_Descuento] DROP CONSTRAINT [FK__Venta_Des__tipo___4D5F7D71]
 GO
-ALTER TABLE [NN].[Venta_Cupon] DROP CONSTRAINT [FK__Venta_Cup__venta__5B438874]
+ALTER TABLE [NN].[Venta_Cupon] DROP CONSTRAINT [FK__Venta_Cup__venta__4F47C5E3]
 GO
-ALTER TABLE [NN].[Venta_Cupon] DROP CONSTRAINT [FK__Venta_Cup__venta__29AC2CE0]
+ALTER TABLE [NN].[Venta_Cupon] DROP CONSTRAINT [FK__Venta_Cup__venta__4F47C5E3]
 GO
-ALTER TABLE [NN].[Venta_Cupon] DROP CONSTRAINT [FK__Venta_Cup__cupon__5A4F643B]
+ALTER TABLE [NN].[Venta_Cupon] DROP CONSTRAINT [FK__Venta_Cup__cupon__503BEA1C]
 GO
-ALTER TABLE [NN].[Venta_Cupon] DROP CONSTRAINT [FK__Venta_Cup__cupon__2AA05119]
+ALTER TABLE [NN].[Venta_Cupon] DROP CONSTRAINT [FK__Venta_Cup__cupon__503BEA1C]
 GO
-ALTER TABLE [NN].[Venta] DROP CONSTRAINT [FK__Venta__venta_med__595B4002]
+ALTER TABLE [NN].[Venta] DROP CONSTRAINT [FK__Venta__venta_med__45BE5BA9]
 GO
-ALTER TABLE [NN].[Venta] DROP CONSTRAINT [FK__Venta__venta_med__58671BC9]
+ALTER TABLE [NN].[Venta] DROP CONSTRAINT [FK__Venta__venta_med__46B27FE2]
 GO
-ALTER TABLE [NN].[Venta] DROP CONSTRAINT [FK__Venta__venta_med__2116E6DF]
+ALTER TABLE [NN].[Venta] DROP CONSTRAINT [FK__Venta__venta_med__46B27FE2]
 GO
 ALTER TABLE [NN].[Venta] DROP CONSTRAINT [FK__Venta__venta_med__2022C2A6]
 GO
